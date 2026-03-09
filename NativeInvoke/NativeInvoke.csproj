@@ -1,0 +1,120 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<OutDir>..\bin\</OutDir>
+		<AssemblyName>NativeInvoke</AssemblyName>
+		<RootNamespace>NativeInvoke</RootNamespace>
+		<LangVersion>latest</LangVersion>
+		<WarningLevel>4</WarningLevel>
+		<ErrorReport>none</ErrorReport>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Deterministic>true</Deterministic>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+		<GenerateSatelliteAssemblies>false</GenerateSatelliteAssemblies>
+		<ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+		<DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
+		<BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+		<IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+		<CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+		<!--<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>-->
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<IncludeBuildOutput>true</IncludeBuildOutput> <!-- must be true because this assembly also ships attribute types at the same time -->
+		<!--<BuildOutputInPackage>false</BuildOutputInPackage>-->
+		<!--<OutputItemType>Analyzer</OutputItemType>-->
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<!--<DevelopmentDependency>true</DevelopmentDependency>-->
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>false</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<Optimize>true</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<IsPackable>true</IsPackable>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageOutputPath>$(SolutionDir)nupkg</PackageOutputPath>
+		<IncludeSymbols>false</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Title>NativeInvoke</Title>
+		<Product>NativeInvoke</Product>
+		<Authors>Cheatoid</Authors>
+		<Owners>Cheatoid</Owners>
+		<Company>Cheatoid</Company>
+		<Copyright>Copyright © Cheatoid</Copyright>
+		<PackageId>NativeInvoke</PackageId>
+		<Description>.NET Source generator for interface-based P/Invoke, useful in unit testing, supports lazy module loading, invokes using calli opcode (delegate* for zero marshalling), no reflection, cross-platform and AOT/JIT-friendly via NativeLibrary API</Description>
+		<RepositoryUrl>https://github.com/Cheatoid/NativeInvoke</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Cheatoid/NativeInvoke</PackageProjectUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>DllImport LibraryImport Native PInvoke Interop Interface Generator</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<Version>1.0.0</Version>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<PackageVersion>$(Version)</PackageVersion>
+		<PackageReleaseNotes></PackageReleaseNotes>
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.dll</AllowedOutputExtensionsInPackageBuildOutputFolder>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="5.0.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25218.8">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Attempt to hide binary files from solution explorer -->
+		<Compile Remove="$(BaseIntermediateOutputPath)**" Visible="false" />
+		<Compile Remove="$(OutDir)**" Visible="false" />
+		<!--<EmbeddedResource Remove="$(BaseIntermediateOutputPath)**" Visible="false" />-->
+		<!--<EmbeddedResource Remove="$(OutDir)**" Visible="false" />-->
+		<None Remove="$(BaseIntermediateOutputPath)**\*.dll" Visible="false" />
+		<None Remove="$(OutDir)**\*.dll" Visible="false" />
+		<None Update="**\*.dll" Visible="false" />
+	</ItemGroup>
+
+	<!-- Include generator DLL into analyzers folder to enable source generator -->
+	<ItemGroup>
+		<None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs" />
+	</ItemGroup>
+
+	<!-- Include generator DLL into lib folder so attributes are visible -->
+	<ItemGroup>
+		<None Include="$(TargetPath)" Pack="true" PackagePath="lib/$(TargetFramework)" />
+	</ItemGroup>
+	<ItemGroup>
+	  <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+	  <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+	</ItemGroup>
+
+</Project>

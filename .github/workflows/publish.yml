@@ -1,0 +1,123 @@
+name: Build, Pack, Publish & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g. 1.0.0)"
+        required: true
+        type: string
+
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    name: Ubuntu
+    runs-on: ubuntu-latest
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0   # IMPORTANT: needed for changelog history
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Determine version (manual dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          VERSION="v${{ github.event.inputs.version }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Determine version (tag push)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          VERSION="${{ github.ref_name }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build -c Release --no-restore
+
+      - name: Create nupkg
+        run: dotnet pack -c Release --no-build -o ./nupkg
+
+      - name: Create zip artifact
+        run: |
+          mkdir zip
+          zip -r "zip/NativeInvoke-${VERSION}.zip" ./bin
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: NativeInvoke-${VERSION}.zip
+          path: zip/*.zip
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+
+          CUR_TAG="${VERSION}"
+
+          # Find previous tag (if any)
+          PREV_TAG=$(git describe --tags --abbrev=0 --match "v*" --exclude "$CUR_TAG" 2>/dev/null || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "Initial release." >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            COMMITS=$(git rev-list --reverse HEAD)
+          else
+            echo "Changes since $PREV_TAG:" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            COMMITS=$(git rev-list $PREV_TAG..HEAD)
+          fi
+
+          for COMMIT in $COMMITS; do
+            MSG=$(git log -1 --pretty=format:%s $COMMIT)
+            echo "- [$MSG](https://github.com/${{ github.repository }}/commit/$COMMIT)" >> CHANGELOG.md
+          done
+
+          # Add full changelog link for all non-initial releases
+          if [ -n "$PREV_TAG" ]; then
+            echo "" >> CHANGELOG.md
+            echo "**Full changelog:** https://github.com/${{ github.repository }}/compare/$PREV_TAG...$CUR_TAG" >> CHANGELOG.md
+          fi
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Publish to NuGet
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-package
+          path: ./nupkg/*.nupkg
+
+      - name: Push to NuGet
+        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: "NativeInvoke ${{ env.VERSION }}"
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: |
+            nupkg/*.nupkg
+            zip/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
