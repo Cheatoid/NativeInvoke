@@ -1,4 +1,4 @@
-<img width="3168" height="1344" alt="NativeInvoke" src="NativeInvoke.jpg" />
+[![NativeInvoke](https://raw.github.com/Cheatoid/NativeInvoke/main/NativeInvoke.jpg)](https://github.com/Cheatoid/NativeInvoke)
 
 # 🌟 **NativeInvoke**
 
