@@ -41,21 +41,23 @@ jobs:
         run: |
           VERSION="v${{ github.event.inputs.version }}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DOTNET_VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - name: Determine version (tag push)
         if: ${{ github.event_name == 'push' }}
         run: |
           VERSION="${{ github.ref_name }}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DOTNET_VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore -p:Version=$DOTNET_VERSION
 
       - name: Build solution
-        run: dotnet build -c Release --no-restore --no-incremental
+        run: dotnet build -c Release --no-restore --no-incremental -p:Version=$DOTNET_VERSION
 
       - name: Create nupkg
-        run: dotnet pack -c Release --no-build -o ./nupkg
+        run: dotnet pack -c Release --no-build -o ./nupkg -p:Version=$DOTNET_VERSION
 
       - name: Create zip artifact
         run: |
