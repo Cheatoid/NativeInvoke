@@ -28,11 +28,10 @@
         <CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
         <!--<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>-->
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<IncludeBuildOutput>true</IncludeBuildOutput> <!-- must be true because this assembly also ships attribute types at the same time -->
-		<!--<BuildOutputInPackage>false</BuildOutputInPackage>-->
-		<!--<OutputItemType>Analyzer</OutputItemType>-->
-		<IsRoslynComponent>true</IsRoslynComponent>
-		<!--<DevelopmentDependency>true</DevelopmentDependency>-->
+        <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include build output in lib folder - we explicitly include the DLL in analyzers -->
+        <OutputItemType>Analyzer</OutputItemType>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <DevelopmentDependency>true</DevelopmentDependency> <!-- Prevent transitive dependencies -->
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
 
@@ -79,7 +78,6 @@
         <FileVersion>$(Version)</FileVersion>
         <PackageVersion>$(Version)</PackageVersion>
         <PackageReleaseNotes></PackageReleaseNotes>
-        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.dll</AllowedOutputExtensionsInPackageBuildOutputFolder>
     </PropertyGroup>
 
     <ItemGroup>
@@ -108,9 +106,13 @@
         <None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs"/>
     </ItemGroup>
 
-    <!-- Include generator DLL into lib folder so attributes are visible -->
+    <!-- Include attribute source file as content to be compiled by consumer (zero runtime dependency) -->
     <ItemGroup>
-        <None Include="$(TargetPath)" Pack="true" PackagePath="lib/$(TargetFramework)"/>
+        <Content Include="NativeImportAttribute.cs" Pack="true" PackagePath="contentFiles/cs/any/NativeInvoke/">
+            <BuildAction>Compile</BuildAction>
+            <CopyToOutput>false</CopyToOutput>
+            <Flatten>false</Flatten>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>

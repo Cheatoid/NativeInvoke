@@ -15,7 +15,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
+        <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
+
+    <!-- Include attribute source file for development/testing (simulates contentFiles behavior from NuGet package) -->
+    <ItemGroup>
+        <Compile Include="..\NativeInvoke\NativeImportAttribute.cs" Link="NativeInvoke\NativeImportAttribute.cs"/>
     </ItemGroup>
 
 </Project>
