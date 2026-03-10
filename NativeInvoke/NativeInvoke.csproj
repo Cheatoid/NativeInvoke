@@ -73,6 +73,7 @@
         <PackageTags>DllImport LibraryImport Native PInvoke Interop Interface Generator</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <Version>1.1.0</Version>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
@@ -118,6 +119,11 @@
     <ItemGroup>
         <AdditionalFiles Include="AnalyzerReleases.Shipped.md"/>
         <AdditionalFiles Include="AnalyzerReleases.Unshipped.md"/>
+    </ItemGroup>
+
+    <!-- Include README.md as package readme -->
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
