@@ -24,7 +24,7 @@ Or edit your `.csproj` (followed by `dotnet restore`):
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="NativeInvoke" Version="1.1.0"/>
+    <PackageReference Include="NativeInvoke" Version="1.2.0"/>
 </ItemGroup>
 ```
 
