@@ -124,10 +124,10 @@ All without touching your container type.
 
 - [ ] Support C# 9 / .NET 5 and later via `#if`; current source generator is relying on C# 14 features and .NET 9 API
 - [ ] Add support for loading symbol from numeric ordinal (ushort)
-- [x] Implement default symbol name prefix and suffix
+- [x] ~~Implement default symbol name prefix and suffix~~
 - [ ] Switch to `typeof(CallConv*)` for future-proofed calling conventions (MemberFunction, Swift, etc.)
 - [ ] Use `IndentedTextWriter` for source-code generation
-- [x] Append `Guid` to generated fields (to prevent name collisions for overloaded functions)
+- [x] ~~Append `Guid` to generated fields (to prevent name collisions for overloaded functions)~~
 - [ ] Make unit tests
 - [ ] Explore micro-optimization: IL weaver via `Fody`, replace interface dispatch and `DllImport` calls with `calli`
 

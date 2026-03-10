@@ -106,7 +106,7 @@ jobs:
           cat CHANGELOG.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Publish to NuGet
+      - name: Upload nupkg artifact
         uses: actions/upload-artifact@v7
         with:
           name: nuget-package
