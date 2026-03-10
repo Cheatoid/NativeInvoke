@@ -1,10 +1,90 @@
 # http://EditorConfig.org
+
+# Top-most EditorConfig file
 root = true
 
-[**.cs]
-end_of_line = crlf
-insert_final_newline = true
+# Default settings for all files
+[*]
 charset = utf-8
-indent_style = space
+end_of_line = crlf
+indent_size = 4
+indent_style = tab
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+
+[**.cs]
 indent_size = 2
+indent_style = space
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+[**.md]
+indent_size = 2
+indent_style = space
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+
+# Solution files
+[**.{sln,slnf,slnx}]
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+# XML project files
+[**.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj,nativeproj,locproj}]
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+# XML config files
+[**.{xml,imxml,stylecop,props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+# JSON files
+[**.json]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+
+# YAML config files
+[**.{yml,yaml}]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+
+# Powershell files
+[**.ps1]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+
+# Shell script files
+[**.sh]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+
+[**.{bat,cmd}]
+indent_size = 2
+indent_style = tab
+insert_final_newline = true
 trim_trailing_whitespace = true

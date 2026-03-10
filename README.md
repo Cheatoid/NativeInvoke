@@ -2,7 +2,7 @@
 
 ### *High-performance, source-generated P/Invoke*
 
-NativeInvoke is a modern, zero-overhead P/Invoke generator for .NET.  
+NativeInvoke is a modern, zero-overhead, generics-capable P/Invoke generator for .NET.  
 It uses Roslyn source generation to enforce **blittable**, **function-pointer based**, **lazy-loaded** native bindings - without the runtime overhead of `DllImport`.
 
 You write clean interfaces.  
@@ -22,7 +22,7 @@ Or edit your `.csproj` (followed by `dotnet restore`):
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="NativeInvoke" Version="1.0.0"/>
+    <PackageReference Include="NativeInvoke" Version="1.1.0"/>
 </ItemGroup>
 ```
 
@@ -36,6 +36,7 @@ Or edit your `.csproj` (followed by `dotnet restore`):
 | **Function pointers**     | Faster than `DllImport`                 |
 | **Lazy-loading support**  | Load symbols/functions only when needed |
 | **Interface-based**       | Fully mockable for testing              |
+| **Generics support**      | Use generics in P/Invoke                |
 | **No static pollution**   | Clean public API surface                |
 | **.NET 9 `Lock` support** | Modern, allocation-free synchronization |
 
@@ -60,12 +61,12 @@ Or edit your `.csproj` (followed by `dotnet restore`):
 
 ## ✨ Example Usage
 
-For example to play a [beep sound on Windows](https://learn.microsoft.com/en-us/windows/win32/api/utilapiset/nf-utilapiset-beep) (without `Console.Beep`):
+Slightly verbose example to play a [beep sound on Windows](https://learn.microsoft.com/en-us/windows/win32/api/utilapiset/nf-utilapiset-beep) (without `Console.Beep`):
 
 ### 1. Define your native interface
 
 ```csharp
-global using NativeInvoke; // to import our attributes in your project
+global using NativeInvoke; // Import our attributes in your project
 
 using BOOL = int; // Win32 BOOL is 4-bytes (0=false, 1=true)
 using DWORD = uint; // double-word
@@ -73,14 +74,15 @@ using DWORD = uint; // double-word
 #if NET6_0_OR_GREATER
 [System.Runtime.Versioning.SupportedOSPlatform("windows")] // Optional (for clarity)
 #endif
-public interface IKernel32
+public interface IKernel32<TBool> // Generics are supported!
+  where TBool : unmanaged
 {
-    [NativeImportMethod("Beep")] // Optional; Use this attribute if you want to load a different name/ordinal,
-                                 // or override a calling convention per function (defaults to platform-specific).
-    BOOL Boop(DWORD frequency, DWORD duration);
+  [NativeImportMethod("Beep")] // Optional; Use this attribute if you want to load a different name/ordinal,
+                               // or override a calling convention per function (defaults to platform-specific).
+  TBool Boop(DWORD frequency, DWORD duration);
 
-    [NativeImportMethod(null)] // Use null or empty string to skip generation.
-    void IgnoreMe();
+  [NativeImportMethod(null)] // Use null or empty string to skip generation.
+  void IgnoreMe();
 }
 ```
 
@@ -91,14 +93,16 @@ The property can be nested anywhere you want (class/struct/interface/record), an
 ```csharp
 public static partial class Win32
 {
-    // Specify native library name.
-    // Optionally set the default calling convention, symbol name prefix, or whether to use lazy loading.
-    [NativeImport("kernel32", Lazy = true)]
-    public static partial IKernel32 Kernel32 { get; }
+  // Specify native library name.
+  // Optionally set the default calling convention, name prefix/suffix, or whether to use eager/lazy loading.
+  [NativeImport("kernel32", Lazy = true)]
+  public static partial IKernel32<BOOL> Kernel32 { get; }
 }
 ```
 
 ### 3. Call it like a normal .NET API
+
+See [Example project](/Example) for more.
 
 ```csharp
 Win32.Kernel32.Boop(600u, 300u);
@@ -106,7 +110,7 @@ Win32.Kernel32.Boop(600u, 300u);
 
 Under the hood, NativeInvoke generates:
 
-- A nested sealed `__Impl` class implementing your interface
+- A nested sealed `__Impl` class implementing your (generic) interface
 - Static (readonly) function pointer fields (`delegate* unmanaged`)
 - Lazy or eager symbol resolution (`NativeLibrary`)
 - A clean property implementation using the `field` keyword
@@ -120,9 +124,11 @@ All without touching your container type.
 
 - [ ] Support C# 9 / .NET 5 and later via `#if`; current source generator is relying on C# 14 features and .NET 9 API
 - [ ] Add support for loading symbol from numeric ordinal (ushort)
-- [ ] Implement default symbol name prefix
-- [ ] Switch to `typeof(CallConv*)` for future-proofed calling conventions
+- [x] Implement default symbol name prefix and suffix
+- [ ] Switch to `typeof(CallConv*)` for future-proofed calling conventions (MemberFunction, Swift, etc.)
 - [ ] Use `IndentedTextWriter` for source-code generation
+- [x] Append `Guid` to generated fields (to prevent name collisions for overloaded functions)
+- [ ] Make unit tests
 - [ ] Explore micro-optimization: IL weaver via `Fody`, replace interface dispatch and `DllImport` calls with `calli`
 
 ---

@@ -21,7 +21,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
 
       var nativeImportAttr = compilation.GetTypeByMetadataName(typeof(NativeInvoke.NativeImportAttribute).FullName!);
       var nativeImportMethodAttr = compilation.GetTypeByMetadataName(typeof(NativeInvoke.NativeImportMethodAttribute).FullName!);
-      if (nativeImportAttr is null) return;
+      if (nativeImportAttr is null || nativeImportMethodAttr is null) return; // Ensure we have our attributes
 
       foreach (var propDecl in propDecls)
       {
@@ -31,7 +31,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
         // Properly identify, ensure it is indeed our specific attribute (not an alias with the same name)
         var attr = propSymbol.GetAttributes()
           .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, nativeImportAttr));
-        if (attr is null) continue;
+        if (attr is null) continue; // Bail out if the property is not annotated with our attribute
 
         GenerateForProperty(spc, compilation, propSymbol, attr, nativeImportMethodAttr);
       }
@@ -42,8 +42,8 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     SourceProductionContext spc,
     Compilation compilation,
     IPropertySymbol prop,
-    AttributeData attr,
-    INamedTypeSymbol? methodAttrSymbol)
+    AttributeData pAttr,
+    INamedTypeSymbol nativeImportMethodAttr)
   {
     var containingType = prop.ContainingType;
 
@@ -79,37 +79,112 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
 
     var iface = (INamedTypeSymbol)prop.Type;
 
+#if DEBUG
+    Debugger.Launch();
+#endif
+
     // Attribute data
-    var libraryName = (string?)attr.ConstructorArguments[0].Value ?? "__Internal"; // TODO/FIXME: report a diagnostic
-    var defaultCc = (CallingConvention)(attr.NamedArguments // TODO: switch to typeof(CallConv*)
-      .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.CallingConvention))
-      .Value.Value ?? (int)CallingConvention.Winapi); // Fallback to platform-default
-    var lazy = (bool)(attr.NamedArguments
-      .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.Lazy))
-      .Value.Value ?? false);
-    var symbolPrefix = (string?)(attr.NamedArguments
-      .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SymbolPrefix))
-      .Value.Value ?? null); // TODO
+    NativeImportAttribute nativeImportAttr;
+    {
+      var temp = new NativeImportAttribute(string.Empty); // Temporary instance to get the default values
+      var libraryName = (string?)pAttr.ConstructorArguments[0].Value ?? "__Internal"; // TODO/FIXME: Report a diagnostic
+      var inherited = (bool)(pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.Inherited))
+        .Value.Value ?? temp.Inherited);
+      var lazy = (bool)(pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.Lazy))
+        .Value.Value ?? temp.Lazy);
+      var defaultCc = (CallingConvention)(pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.CallingConvention))
+        .Value.Value ?? temp.CallingConvention); // Fallback to platform-default
+      var suppressGCTransition = (bool)(pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SuppressGCTransition))
+        .Value.Value ?? temp.SuppressGCTransition);
+      var symbolPrefix = (pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SymbolPrefix))
+        .Value.Value ?? temp.SymbolPrefix) as string;
+      var symbolSuffix = (pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SymbolSuffix))
+        .Value.Value ?? temp.SymbolSuffix) as string;
+      nativeImportAttr = new NativeImportAttribute(libraryName)
+      {
+        Inherited = inherited,
+        Lazy = lazy,
+        CallingConvention = defaultCc,
+        SuppressGCTransition = suppressGCTransition,
+        SymbolPrefix = symbolPrefix ?? string.Empty,
+        SymbolSuffix = symbolSuffix ?? string.Empty
+      };
+    }
 
     // Methods
-    var methods = iface.GetMembers()
-      .OfType<IMethodSymbol>()
-      .Where(m =>
+    var methods = new List<MethodData>();
+    var seenMethods = new HashSet<string>(StringComparer.Ordinal); // Track seen method signatures to handle duplicates from interface hierarchy
+
+    // Collect interfaces to process based on Inherited setting
+    var interfacesToProcess = new List<INamedTypeSymbol> { iface };
+    if (nativeImportAttr.Inherited)
+    {
+      // Add all inherited interfaces (iface.AllInterfaces returns all interfaces this interface inherits from)
+      interfacesToProcess.AddRange(iface.AllInterfaces);
+    }
+
+    foreach (var currentIface in interfacesToProcess)
+    {
+      foreach (var member in currentIface.GetMembers())
       {
-        if (m.MethodKind != MethodKind.Ordinary) return false;
+        if (member is not IMethodSymbol method) continue;
+        if (method.MethodKind != MethodKind.Ordinary) continue;
+
+        // Create a unique signature key to detect duplicates from interface hierarchy
+        // Format: ReturnType|MethodName|ParamType1,ParamType2,...
+        var signatureKey = BuildMethodSignatureKey(method);
+        if (!seenMethods.Add(signatureKey)) continue; // Skip if already seen (duplicate from hierarchy)
+
         // Properly identify, ensure it is indeed our specific attribute (not an alias with the same name)
-        var mAttr = m.GetAttributes()
-          .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, methodAttrSymbol));
-        if (mAttr is null) return true; // include if attribute is not present
-        if (mAttr.ConstructorArguments.Length <= 0) return true; // include if attribute is present, but no arguments
-        if (mAttr.ConstructorArguments[0].Value is not string methodName) return true; // include if attribute is present, but 1st arg is not a string
-        return !string.IsNullOrWhiteSpace(methodName); // exclude only if the string is null or empty string
-      })
-      .ToArray();
+        var mAttr = method.GetAttributes()
+          .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, nativeImportMethodAttr));
+        string? entryPoint = null;
+        int? ordinal = null;
+        var shouldInclude = true;
+        if (mAttr is not null) // Include if attribute is not present
+        {
+          if (mAttr.ConstructorArguments.Length > 0) // Include if attribute is present, but no arguments
+          {
+            if (mAttr.ConstructorArguments[0].Value is string entry) // Include if attribute is present, but 1st arg is not a string
+            {
+              entryPoint = entry;
+              shouldInclude = !string.IsNullOrWhiteSpace(entryPoint); // Exclude only if the string is null or empty
+            }
+            else if (mAttr.ConstructorArguments[0].Value is int o)
+            {
+              ordinal = o;
+            }
+          }
+        }
+        if (!shouldInclude) continue;
+        // Reconstruct the method attribute and create method data
+        var name = method.Name + "_" + Guid.NewGuid().ToString("N"); // Append a Guid to prevent name collisions for overloaded functions
+        entryPoint = ResolveMethodEntryPoint(entryPoint, method.Name, nativeImportAttr.SymbolPrefix, nativeImportAttr.SymbolSuffix);
+        var cc = (mAttr?.NamedArguments
+          .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.CallingConvention))
+          .Value.Value ?? null) as CallingConvention?;
+        var suppressGCTransition = (mAttr?.NamedArguments
+          .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.SuppressGCTransition))
+          .Value.Value ?? null) as bool?;
+        var attr = ordinal.HasValue
+          ? new NativeImportMethodAttribute(ordinal.Value)
+          : new NativeImportMethodAttribute(entryPoint);
+        if (cc.HasValue) attr.CallingConvention = cc.Value;
+        if (suppressGCTransition.HasValue) attr.SuppressGCTransition = suppressGCTransition.Value;
+        methods.Add(new MethodData(method, attr, name, entryPoint, cc ?? nativeImportAttr.CallingConvention, suppressGCTransition ?? nativeImportAttr.SuppressGCTransition));
+      }
+    }
 
     // Blittability check
-    foreach (var m in methods)
+    foreach (var data in methods)
     {
+      var m = data.Method;
       if (!IsBlittable(m.ReturnType) || m.Parameters.Any(static p => !IsBlittable(p.Type)))
       {
         spc.ReportDiagnostic(Diagnostic.Create(
@@ -120,21 +195,42 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       }
     }
 
-    var source = GenerateSource(containingType, prop, iface, methods, libraryName, defaultCc, lazy, methodAttrSymbol);
-    spc.AddSource($"{containingType.Name}.{prop.Name}-{Guid.NewGuid():N}.g.cs", source); // Append Guid to avoid collisions, just in case
+    if (methods.Count > 0) // Early exit if we have no methods
+    {
+      var source = GenerateSource(containingType, prop, iface, methods.ToArray(), nativeImportAttr);
+      spc.AddSource($"{containingType.Name}.{prop.Name}-{Guid.NewGuid():N}.g.cs", source); // Append Guid to avoid collisions, just in case
+    }
+  }
+
+  private static string ResolveMethodEntryPoint(string? entryPoint, string methodName, string? symbolPrefix, string? symbolSuffix)
+  {
+    if (!string.IsNullOrEmpty(entryPoint)) return entryPoint!; // Use explicit entry point
+    return $"{symbolPrefix ?? ""}{methodName}{symbolSuffix ?? ""}";
+  }
+
+  private static string BuildMethodSignatureKey(IMethodSymbol method)
+  {
+    // Build a unique key for the method signature to detect duplicates from interface hierarchy
+    // Format: ReturnType|MethodName|ParamType1,ParamType2,...
+    var sb = new StringBuilder();
+    sb.Append(method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+    sb.Append('|');
+    sb.Append(method.Name);
+    sb.Append('|');
+    sb.Append(string.Join(",", method.Parameters.Select(static p => p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))));
+    return sb.ToString();
   }
 
   private static string GenerateSource(
     INamedTypeSymbol type,
     IPropertySymbol prop,
     INamedTypeSymbol iface,
-    IMethodSymbol[] methods,
-    string libraryName,
-    CallingConvention defaultCc,
-    bool lazy,
-    INamedTypeSymbol? methodAttrSymbol)
+    MethodData[] methods,
+    NativeImportAttribute nativeImportAttr)
   {
-    var sb = new StringBuilder(); // TODO: switch to IndentedTextWriter (to fix nested indentation in Emit*)
+    if (methods.Length <= 0) return string.Empty;
+
+    var sb = new StringBuilder(); // TODO: Switch to IndentedTextWriter (to fix nested indentation in Emit*)
 
     sb.AppendLine("// <auto-generated />");
     sb.AppendLine();
@@ -181,26 +277,34 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     sb.Append(Indent()).AppendLine("{");
 
     var innerIndent = Indent() + "    ";
-    sb.AppendLine($"{innerIndent}private static readonly nint __lib;"); // C# 9 (enhanced IntPtr)
-    sb.AppendLine($"{innerIndent}static __Impl() {{ if (!global::System.Runtime.InteropServices.NativeLibrary.TryLoad({libraryName.Literal}, out __lib)) {{ throw new global::System.DllNotFoundException({libraryName.Literal}); }} }}");
+    sb.Append(innerIndent).AppendLine("private static readonly nint __lib;"); // C# 9 (enhanced IntPtr)
 
     // NOTE: EmitLazy/Eager logic needs to handle the increased indentation to look clean
-    // TODO/FIXME: Append Guid to support overloaded signatures (prevent m.Name collisions)
-    if (lazy) EmitLazy(sb, methods, methodAttrSymbol, defaultCc);
-    else EmitEager(sb, methods, methodAttrSymbol, defaultCc);
-
-    foreach (var m in methods)
+    var lazy = nativeImportAttr.Lazy;
+    if (lazy)
     {
+      sb.Append(innerIndent).AppendLine($"static __Impl() {{ if (!global::System.Runtime.InteropServices.NativeLibrary.TryLoad({nativeImportAttr.LibraryName.Literal}, out __lib)) {{ throw new global::System.DllNotFoundException({nativeImportAttr.LibraryName.Literal}); }} }}");
+      EmitLazy(sb, methods, nativeImportAttr);
+    }
+    else
+    {
+      EmitEager(sb, methods, nativeImportAttr);
+    }
+
+    foreach (var data in methods)
+    {
+      var m = data.Method;
       var ret = m.ReturnType.ToDisplayString();
       var paramsList = string.Join(", ", m.Parameters.Select(static p => $"{p.Type.ToDisplayString()} {p.Name}"));
       var argsList = string.Join(", ", m.Parameters.Select(static p => p.Name));
 
+      if (!lazy) sb.Append(innerIndent).AppendLine("[global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
       sb.Append(innerIndent).AppendLine($"public {ret} {m.Name}({paramsList})");
       sb.Append(innerIndent).AppendLine("{");
-      if (lazy) sb.AppendLine($"{innerIndent}    __Ensure_{m.Name}();");
+      if (lazy) sb.AppendLine($"{innerIndent}    __Ensure_{data.Name}();");
       sb.Append(innerIndent).Append("    ");
       if (!m.ReturnsVoid) sb.Append("return ");
-      sb.AppendLine($"__fp_{m.Name}({argsList});");
+      sb.AppendLine($"__fp_{data.Name}({argsList});");
       sb.Append(innerIndent).AppendLine("}");
     }
 
@@ -215,103 +319,157 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     return sb.ToString();
   }
 
-  private static void EmitLazy(StringBuilder sb, IMethodSymbol[] methods, INamedTypeSymbol? methodAttrSymbol, CallingConvention defaultCc)
+  private static void EmitLazy(StringBuilder sb, MethodData[] methods, NativeImportAttribute nativeImportAttr)
   {
     // Fields
-    foreach (var m in methods)
+    foreach (var data in methods)
     {
-      var fp = GetFpType(m, methodAttrSymbol, defaultCc);
-      sb.AppendLine($"private static readonly global::System.Threading.Lock __lock_{m.Name} = new();"); // .NET 9
-      sb.AppendLine($"private static nint __addr_{m.Name};");
-      sb.AppendLine($"private static bool __resolved_{m.Name};"); // TODO/CONS: maybe remove this and do a null check against addr field
-      sb.AppendLine($"private static {fp} __fp_{m.Name};");
+      sb.AppendLine($"private static readonly global::System.Threading.Lock __lock_{data.Name} = new();"); // .NET 9
+      sb.AppendLine($"private static nint __addr_{data.Name};");
+      sb.AppendLine($"private static bool __resolved_{data.Name};"); // TODO/CONS: Maybe remove this and do a null check against addr field
+      sb.AppendLine($"private static {data.FunctionPointerType} __fp_{data.Name};");
       sb.AppendLine();
     }
 
     // Ensure methods
-    foreach (var m in methods)
+    foreach (var data in methods)
     {
-      var entry = m.Name;
-      sb.AppendLine($"private static void __Ensure_{m.Name}()");
+      sb.AppendLine($"private static void __Ensure_{data.Name}()");
       sb.AppendLine("{");
-      sb.AppendLine($"    if (__resolved_{m.Name}) return;");
-      sb.AppendLine($"    __lock_{m.Name}.Enter();");
+      sb.AppendLine($"    if (__resolved_{data.Name}) return;");
+      sb.AppendLine($"    __lock_{data.Name}.Enter();");
       sb.AppendLine("    try");
       sb.AppendLine("    {");
-      sb.AppendLine($"        if (__resolved_{m.Name}) return;");
-      sb.AppendLine($"        if (!global::System.Runtime.InteropServices.NativeLibrary.TryGetExport(__lib, {entry.Literal}, out __addr_{m.Name}))");
+      sb.AppendLine($"        if (__resolved_{data.Name}) return;");
+      sb.AppendLine($"        if (!global::System.Runtime.InteropServices.NativeLibrary.TryGetExport(__lib, {data.EntryPoint.Literal}, out __addr_{data.Name}))");
       sb.AppendLine("        {");
       sb.AppendLine("            ThrowEntryPointNotFoundException();");
       sb.AppendLine("        }");
-      sb.AppendLine($"        __fp_{m.Name} = ({GetFpType(m, methodAttrSymbol, defaultCc)})__addr_{m.Name};");
-      sb.AppendLine($"        __resolved_{m.Name} = true;");
+      sb.AppendLine($"        __fp_{data.Name} = ({data.FunctionPointerType})__addr_{data.Name};");
+      sb.AppendLine($"        __resolved_{data.Name} = true;");
       sb.AppendLine("    }");
       sb.AppendLine("    finally"); // Ensure the Lock is freed even if exception is thrown
       sb.AppendLine("    {");
-      sb.AppendLine($"        __lock_{m.Name}.Exit();");
+      sb.AppendLine($"        __lock_{data.Name}.Exit();");
       sb.AppendLine("    }");
       sb.AppendLine("    return;");
       sb.AppendLine("    [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.NoInlining), global::System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute]");
       sb.AppendLine("    static void ThrowEntryPointNotFoundException() =>");
-      sb.AppendLine($"        throw new global::System.EntryPointNotFoundException({entry.Literal});");
+      sb.AppendLine($"        throw new global::System.EntryPointNotFoundException({data.EntryPoint.Literal});");
       sb.AppendLine("}");
       sb.AppendLine();
     }
   }
 
-  private static void EmitEager(StringBuilder sb, IMethodSymbol[] methods, INamedTypeSymbol? methodAttrSymbol, CallingConvention defaultCc)
+  private static void EmitEager(StringBuilder sb, MethodData[] methods, NativeImportAttribute nativeImportAttr)
   {
+    // Function pointer fields
+    foreach (var data in methods)
+    {
+      sb.AppendLine($"private static readonly {data.FunctionPointerType} __fp_{data.Name};");
+    }
+
+    sb.AppendLine();
     sb.AppendLine("static __Impl()");
     sb.AppendLine("{");
+    sb.AppendLine($"    if (!global::System.Runtime.InteropServices.NativeLibrary.TryLoad({nativeImportAttr.LibraryName.Literal}, out __lib)) {{ throw new global::System.DllNotFoundException({nativeImportAttr.LibraryName.Literal}); }}");
 
     // Initialize function pointers
-    foreach (var m in methods)
+    foreach (var data in methods)
     {
-      var entry = m.Name;
       sb.AppendLine("    {");
-      sb.AppendLine($"        if (!global::System.Runtime.InteropServices.NativeLibrary.TryGetExport(__lib, {entry.Literal}, out var __addr_{m.Name}))");
+      sb.AppendLine($"        if (!global::System.Runtime.InteropServices.NativeLibrary.TryGetExport(__lib, {data.EntryPoint.Literal}, out var __addr_{data.Name}))");
       sb.AppendLine("        {");
       sb.AppendLine("            ThrowEntryPointNotFoundException();");
       sb.AppendLine("            [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.NoInlining), global::System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute]");
       sb.AppendLine("            static void ThrowEntryPointNotFoundException() =>");
-      sb.AppendLine($"                throw new global::System.EntryPointNotFoundException({entry.Literal});");
+      sb.AppendLine($"                throw new global::System.EntryPointNotFoundException({data.EntryPoint.Literal});");
       sb.AppendLine("        }");
-      sb.AppendLine($"        __fp_{m.Name} = ({GetFpType(m, methodAttrSymbol, defaultCc)})__addr_{m.Name};");
+      sb.AppendLine($"        __fp_{data.Name} = ({data.FunctionPointerType})__addr_{data.Name};");
       sb.AppendLine("    }");
     }
 
     sb.AppendLine("}");
     sb.AppendLine();
+  }
 
-    // Function pointer fields
-    foreach (var m in methods)
+  internal sealed class MethodData
+  {
+    public MethodData(
+      IMethodSymbol Method,
+      NativeImportMethodAttribute Attribute,
+      string Name,
+      string EntryPoint,
+      CallingConvention CallingConvention,
+      bool SuppressGCTransition)
     {
-      sb.AppendLine($"private static readonly {GetFpType(m, methodAttrSymbol, defaultCc)} __fp_{m.Name};");
+      this.Method = Method;
+      this.Attribute = Attribute;
+      this.Name = Name;
+      this.EntryPoint = EntryPoint;
+      this.CallingConvention = CallingConvention;
+      this.SuppressGCTransition = SuppressGCTransition;
+      this.FunctionPointerType = ResolveFunctionPointerType(this);
+    }
+
+    public IMethodSymbol Method { get; }
+    public NativeImportMethodAttribute Attribute { get; }
+
+    /// <summary>unique name after resolving prefix/suffix</summary>
+    public string Name { get; }
+
+    /// <summary>final entry point after resolving attributes</summary>
+    public string EntryPoint { get; }
+
+    /// <summary>final calling convention after resolving attributes</summary>
+    public CallingConvention CallingConvention { get; }
+
+    /// <summary>final suppress GC transition after resolving attributes</summary>
+    public bool SuppressGCTransition { get; }
+
+    /// <summary>final computed function-pointer type</summary>
+    public string FunctionPointerType { get; }
+
+    public void Deconstruct(
+      out IMethodSymbol Method,
+      out NativeImportMethodAttribute Attribute,
+      out string Name,
+      out string EntryPoint,
+      out CallingConvention CallingConvention,
+      out bool SuppressGCTransition,
+      out string FunctionPointerType)
+    {
+      Method = this.Method;
+      Attribute = this.Attribute;
+      Name = this.Name;
+      EntryPoint = this.EntryPoint;
+      CallingConvention = this.CallingConvention;
+      SuppressGCTransition = this.SuppressGCTransition;
+      FunctionPointerType = this.FunctionPointerType;
     }
   }
 
-  private static string GetFpType(IMethodSymbol m, INamedTypeSymbol? methodAttrSymbol, CallingConvention defaultCc)
+  private static string ResolveFunctionPointerType(MethodData data)
   {
-    // TODO/FIXME: switch to typeof(CallConv*)
-    var cc = defaultCc;
-    var ccString = cc switch
+    var suppressGCTransition = data.SuppressGCTransition;
+    var ccString = data.CallingConvention switch
     {
-      CallingConvention.Cdecl => "unmanaged[Cdecl]",
-      CallingConvention.StdCall => "unmanaged[Stdcall]",
-      CallingConvention.ThisCall => "unmanaged[Thiscall]",
-      CallingConvention.FastCall => "unmanaged[Fastcall]",
-      _ => "unmanaged" // platform-default
+      CallingConvention.Cdecl => suppressGCTransition ? "[Cdecl, SuppressGCTransition]" : "[Cdecl]",
+      CallingConvention.StdCall => suppressGCTransition ? "[Stdcall, SuppressGCTransition]" : "[Stdcall]",
+      CallingConvention.ThisCall => suppressGCTransition ? "[Thiscall, SuppressGCTransition]" : "[Thiscall]",
+      CallingConvention.FastCall => suppressGCTransition ? "[Fastcall, SuppressGCTransition]" : "[Fastcall]",
+      _ => suppressGCTransition ? "[SuppressGCTransition]" : "" // Fallback to platform-default
     };
 
-    var args = string.Join(", ", m.Parameters.Select(static p => p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+    var args = string.Join(", ", data.Method.Parameters.Select(static p => p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
     if (args.Length > 0) args += ", ";
 
-    return $"delegate* {ccString}<{args}{m.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>"; // C# 9 (function pointer)
+    return $"delegate* unmanaged{ccString}<{args}{data.Method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>"; // C# 9 (function pointer)
   }
 
   private static bool IsBlittable(ITypeSymbol t)
   {
-    // TODO/CONS: maybe remove this, or return true and let compiler/runtime handle it (crash in worst case)
+    // TODO/CONS: Maybe remove this, or return true and let compiler/runtime handle it (crash in worst case)
     //return true;
 
     if (t is null)
@@ -352,9 +510,9 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       .OfType<TypeDeclarationSyntax>()
       .Any(static t => t.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)));
 
-  private static string GetTypeKind(INamedTypeSymbol sym) =>
+  private static string GetTypeKind(INamedTypeSymbol symbol) =>
     // Proper Roslyn way (helper for determining class/struct/interface/record)
-    sym switch
+    symbol switch
     {
       { IsRecord: true, IsValueType: true } => "record struct",
       { IsRecord: true, IsValueType: false } => "record",
