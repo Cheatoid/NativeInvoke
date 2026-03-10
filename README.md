@@ -104,7 +104,7 @@ public static partial class Win32
 
 ### 3. Call it like a normal .NET API
 
-See [Example project](/Example) for more.
+See [Example project](https://github.com/Cheatoid/NativeInvoke/tree/main/Example) for more.
 
 ```csharp
 Win32.Kernel32.Boop(600u, 300u);
