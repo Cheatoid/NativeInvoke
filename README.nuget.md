@@ -1,12 +1,10 @@
-[<img width="100%" alt="NativeInvoke banner" src="https://raw.github.com/Cheatoid/NativeInvoke/main/NativeInvoke.jpg" />](https://github.com/Cheatoid/NativeInvoke) [<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00f7ff,100:ff00e6&height=150&section=header&text=🌟+ᑎᗩTIᐯEIᑎᐯOKE+✨&fontSize=40&fontColor=ffffff" width="100%" />](https://github.com/Cheatoid/NativeInvoke)
+![NativeInvoke banner](https://raw.github.com/Cheatoid/NativeInvoke/main/NativeInvoke.jpg)
 
-<div align="center">
+# 🌟 ᑎᗩTIᐯEIᑎᐯOKE ✨
 
 [![Stars](https://img.shields.io/github/stars/Cheatoid/NativeInvoke?style=flat-square&color=00f0ff&labelColor=001f2b)](https://github.com/Cheatoid/NativeInvoke/stargazers) 
 [![Issues](https://img.shields.io/github/issues/Cheatoid/NativeInvoke?style=flat-square&color=397f14&labelColor=002b00)](https://github.com/Cheatoid/NativeInvoke/issues) 
 [![License](https://img.shields.io/github/license/Cheatoid/NativeInvoke?style=flat-square&color=ff00e6&labelColor=2b001f)](https://github.com/Cheatoid/NativeInvoke/blob/main/LICENSE) 
-[![NativeInvoke](https://readme-typing-svg.herokuapp.com?size=32&duration=7000&color=00F7FF&center=true&vCenter=true&width=800&lines=hello,+stranger;welcome+to+NativeInvoke+codebase;made+with+%E2%9D%A4%EF%B8%8F+by+Cheatoid)](https://github.com/Cheatoid/NativeInvoke) 
-</div>
 
 ### *High-performance, source-generated P/Invoke*
 
@@ -24,7 +22,7 @@ NativeInvoke generates the unsafe bits for you at compile-time.
 - No dynamic codegen (dynamic IL).
 - Just pure compile-time generation glue.
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 🚀 Quick Installation
 
@@ -46,7 +44,7 @@ How floating versions work:
 - `1.*`: Latest stable version with major version 1
 - `1.2.*`: Latest stable version with major.minor 1.2
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 🧠 Why NativeInvoke?
 
@@ -60,7 +58,7 @@ How floating versions work:
 | **No static pollution**   | Clean public API surface                |
 | **.NET 9 `Lock` support** | Modern, allocation-free synchronization |
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 🛠 Requirements
 
@@ -68,17 +66,14 @@ How floating versions work:
 - Unsafe code enabled (`<AllowUnsafeBlocks>true</AllowUnsafeBlocks>`)
 - Roslyn source generators enabled (default in SDK-style projects)
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## ✨ Example Usage
 
 > 📚 [**See Attribute docs**](https://github.com/Cheatoid/NativeInvoke/blob/main/NativeInvoke/NativeImportAttribute.cs).  
 
 Checkout the [**full Example project**](https://github.com/Cheatoid/NativeInvoke/tree/main/Example) for more!  
-
-<details>
-
-<summary>Click here to toggle an example for <a href="https://learn.microsoft.com/en-us/windows/win32/api/utilapiset/nf-utilapiset-beep">playing a <i>beep</i> sound on Windows platform</a> (a.k.a. <code>System.Console.Beep</code>)</summary>
+Here is slightly verbose example for [playing a *beep* sound on Windows platform](https://learn.microsoft.com/en-us/windows/win32/api/utilapiset/nf-utilapiset-beep) (a.k.a. `System.Console.Beep`):
 
 ### 1. Define your native interface
 
@@ -143,9 +138,7 @@ Under the hood, NativeInvoke generates:
 
 All without touching your container type.
 
-</details>
-
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 💡 Future/Experiments (ToDo list)
 
@@ -160,22 +153,22 @@ All without touching your container type.
 - [ ] Auto-generate proper page for docs and examples (maybe use GitHub io page or wiki)
 - [ ] Explore micro-optimization: IL weaver via `Fody`, replace interface dispatch and `DllImport` calls with `calli`
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 🙏 Contributing
 
 PRs, issues, and ideas are welcome.  
 NativeInvoke is built for developers who want **maximum performance** without sacrificing **clean API design**.
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 💖 Support
 
 If you like this or you are using this in your project, consider:
-- [Becoming a ⭐](https://github.com/Cheatoid/NativeInvoke/stargazers) 🤩
+- [Becoming a ⭐](https://github.com/Cheatoid/NativeInvoke/stargazers)
 - Spreading the word
 
-[<img width="100%" alt="separator" src="https://raw.github.com/Cheatoid/gh_assets/_/images/rainbow-separator.png" />](https://github.com/Cheatoid/NativeInvoke)
+---
 
 ## 📄 License
 
