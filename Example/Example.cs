@@ -1,56 +1,158 @@
-global using NativeInvoke; // to import our attributes in your project
+global using NativeInvoke; // Import our attributes in your project
+global using NIMA = NativeInvoke.NativeImportMethodAttribute;
 
+// Alias a few common Win32 types for our example (zero marshalling):
+global using BOOL = int; // Win32 BOOL is 4-bytes (0=false, 1=true)
+global using DWORD = uint; // double-word
+global using UINT = uint;
+global using HWND = nint; // window handle
+global using unsafe LPCSTR = sbyte*; // ANSI C string
+global using unsafe LPCWSTR = char*; // Wide/Unicode string; alternatively, ushort*
+
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-using BOOL = int; // Win32 BOOL is 4-bytes (0=false, 1=true)
-using DWORD = uint; // double-word
+using System.Runtime.Versioning;
 
 namespace Example;
 
-#if NET6_0_OR_GREATER
-[System.Runtime.Versioning.SupportedOSPlatform("windows")] // Optional (for clarity)
-#endif
-public interface IKernel32<TBool, TDWord>
+#region kernel32
+
+[SupportedOSPlatform("windows")] // Optional (for clarity)
+public interface IKernel32<TBool, TDWord> : IKernel // Generics are supported!
   where TBool : unmanaged
   where TDWord : unmanaged
 {
-  [NativeImportMethod("Beep")]
-  TBool Boop(TDWord frequency, TDWord duration); // generic with explicit entry point
+  [NIMA("Beep")]
+  TBool Boop(TDWord frequency, TDWord duration); // generic with explicit entry point (ignores SymbolPrefix/Suffix)
 
-  [NativeImportMethod(CallingConvention = CallingConvention.StdCall)]
-  BOOL Boop(int frequency, int duration); // calling convention override
+  BOOL Beep(TDWord frequency, TDWord duration); // overload without attribute, resolved using method's name (respects SymbolPrefix/Suffix)
 
-  BOOL Beep(TDWord frequency, TDWord duration); // no attribute
-
-  [NativeImportMethod(null)]
-  void IgnoreMe(); // should be skipped
+  [NIMA(null)] // use null or empty string to skip generation
+  void IgnoreMe();
 }
 
-internal sealed partial record Win32
+[SupportedOSPlatform("windows")] // Optional (for clarity)
+public interface IKernel
 {
-  private const string LibName = "kernel32";
+  [NIMA(
+    CallingConvention = CallingConvention.StdCall // explicit calling convention overrides the default
+  )]
+  BOOL Beep(int frequency, int duration); // resolved using method's name as entry point
+
+  void SkipMe(); // this should be ignored because ExplicitOnly=true
+}
+
+#endregion
+
+#region user32
+
+[SupportedOSPlatform("windows")] // Optional (for clarity)
+public unsafe interface IUser32<TAnsiChar, TWideChar>
+  where TAnsiChar : unmanaged
+  where TWideChar : unmanaged
+{
+  [NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
+  int MessageBoxA(HWND hWnd, ReadOnlySpan<byte> lpText, ReadOnlySpan<byte> lpCaption, UINT uType);
+  int MessageBoxA(HWND hWnd, TAnsiChar* lpText, TAnsiChar* lpCaption, UINT uType);
+  [NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
+  int MessageBoxW(HWND hWnd, ReadOnlySpan<TWideChar> lpText, ReadOnlySpan<TWideChar> lpCaption, UINT uType);
+  [NIMA("MessageBoxW")]
+  int MessageBox(HWND hWnd, TWideChar* lpText, TWideChar* lpCaption, UINT uType);
+}
+
+#endregion
+
+internal sealed partial class Win32 // Container can be class/struct/interface/record (nesting is also supported)
+{
+  private const string kernel32 = "kernel32", user32 = "user32";
+
+  // Made slightly verbose, for easier customization and demonstration purposes...
+
+  #region kernel32
 
   [NativeImport(
-    LibName, // Specify native library name
-    Lazy = false, // Whether to use lazy or eager module loading
-    CallingConvention = CallingConvention.Cdecl, // Define the default calling convention
-    SymbolPrefix = "begin_", // Define common symbol prefix
-    SymbolSuffix = "_end", // Define common symbol suffix
-    Inherited = false // Whether to consider interface inheritance members
+    kernel32 // Specify native library name
+    , EnforceBlittable = true // Whether to enforce blittable type validation (applies to all methods, can be overriden per-method)
+    , ExplicitOnly = false // Whether only methods explicitly marked with NIMA should be considered
+    , Inherited = true // Whether to consider inherited interface methods
+    , Lazy = false // Whether to use lazy or eager module loading
+    , CallingConvention = CallingConvention.StdCall // Define the default calling convention (default is platform-specific, applies to all methods, can be overriden per-method)
+    , SuppressGCTransition = false // Whether to suppress the GC transition (applies to all methods, can be overriden per-method)
+    , SymbolPrefix = "" // Define common prefix (prepended to method name unless using explicit entry point)
+    , SymbolSuffix = "" // Define common suffix (appended to method name unless using explicit entry point)
   )]
-  //internal static partial IKernel32 Kernel32 { get; }
   internal static partial IKernel32<BOOL, DWORD> Kernel32 { get; }
+
+  [NativeImport(
+    kernel32 // Specify native library name
+    //, EnforceBlittable = true // Whether to enforce blittable type validation (applies to all methods, can be overriden per-method)
+    , ExplicitOnly = true // Whether only methods explicitly marked with NIMA should be considered
+    , Inherited = false // Whether to consider inherited interface methods
+    , Lazy = true // Whether to use lazy or eager module loading
+  )]
+  internal static partial IKernel Kernel { get; }
+
+  #endregion
+
+  #region user32
+
+  [NativeImport(
+    user32 // Specify native library name
+    , Lazy = true // Whether to use lazy or eager module loading
+    , CallingConvention = CallingConvention.StdCall // Define the default calling convention
+  )]
+  internal static partial IUser32<sbyte, char> User32 { get; }
+
+  #endregion
 }
 
-internal static partial class Program
+[SupportedOSPlatform("windows")] // Optional (for clarity)
+internal static unsafe partial class Program
 {
+  #region How you would usually do it... (the standard way, same as DllImport, this looks ugly)
+
   [LibraryImport("kernel32", EntryPoint = "Beep")]
-  private static partial BOOL PlayBeep(DWORD f, DWORD d);
+  [UnmanagedCallConv(CallConvs = [typeof(CallConvStdcall)])]
+  private static partial BOOL PlayBeep(DWORD frequency, DWORD duration);
+
+  [LibraryImport("user32", EntryPoint = "MessageBoxA")]
+  [UnmanagedCallConv(CallConvs = [typeof(CallConvStdcall)])]
+  private static partial int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
+
+  [LibraryImport("user32", EntryPoint = "MessageBoxW")]
+  [UnmanagedCallConv(CallConvs = [typeof(CallConvStdcall)])]
+  private static partial int MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
+
+  [LibraryImport("user32", EntryPoint = "MessageBoxW", StringMarshalling = StringMarshalling.Utf16)]
+  [UnmanagedCallConv(CallConvs = [typeof(CallConvStdcall)])]
+  private static partial int MessageBox(HWND hWnd, string lpText, string lpCaption, UINT uType);
+
+  #endregion
 
   private static void Main()
   {
-    Win32.Kernel32.Boop(750, 2000);
-    PlayBeep(750, 2000);
+    if (!OperatingSystem.IsWindows()) throw new NotSupportedException("This example is for Windows-only");
+
+    Debugger.Launch();
+
+    Win32.Kernel32.Boop(500u, 1000u);
+    Win32.Kernel32.Beep(600, 1000); // included because Inherited is true
+    Win32.Kernel32.Beep(700u, 1000u);
+
+    Win32.User32.MessageBoxA(0, "Zero allocation example, ANSI"u8, "NativeInvoke"u8, 0u);
+
+    Win32.User32.MessageBoxW(0, "Zero allocation example, Unicode", "NativeInvoke", 0u); // NOTE: .AsSpan() is redundant since C# 14
+
+    fixed (LPCWSTR text = "Allocation and pinning example, Unicode", caption = "NativeInvoke")
+    {
+      Win32.User32.MessageBox(0, text, caption, /*MB_ICONWARNING*/0x30u);
+    }
+
+    PlayBeep(800u, 1000u);
+
+    MessageBox(0, "Zero allocation example, Unicode", "LibraryImport", 0u);
+
+    Console.ReadKey(true);
   }
 }

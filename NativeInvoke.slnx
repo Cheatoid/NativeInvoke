@@ -1,4 +1,6 @@
 <Solution>
-    <Project Path="Example/Example.csproj"/>
-    <Project Path="NativeInvoke/NativeInvoke.csproj"/>
+    <Project Path="Example/Example.csproj">
+        <BuildType Project="Local" />
+    </Project>
+    <Project Path="NativeInvoke/NativeInvoke.csproj" />
 </Solution>

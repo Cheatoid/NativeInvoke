@@ -14,13 +14,38 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-    </ItemGroup>
+    <PropertyGroup>
+        <!-- Define custom configurations -->
+        <Configurations>Debug;Release;Local;NuGet</Configurations>
+    </PropertyGroup>
 
-    <!-- Include attribute source file for development/testing (simulates contentFiles behavior from NuGet package) -->
-    <ItemGroup>
-        <Compile Include="..\NativeInvoke\NativeImportAttribute.cs" Link="NativeInvoke\NativeImportAttribute.cs"/>
-    </ItemGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Local'">
+        <UsePackageRef>false</UsePackageRef>
+        <!-- Inherits from Debug by setting these -->
+        <Optimize>false</Optimize>
+        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='NuGet'">
+        <UsePackageRef>true</UsePackageRef>
+        <!-- Inherits from Debug by setting these -->
+        <Optimize>false</Optimize>
+        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    </PropertyGroup>
+
+    <Choose>
+        <When Condition="'$(UsePackageRef)'=='true'">
+            <ItemGroup>
+                <PackageReference Include="NativeInvoke" Version="*-*"/>
+            </ItemGroup>
+        </When>
+        <Otherwise>
+            <ItemGroup>
+                <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+                <!-- Include attribute source file for development/testing (simulates contentFiles behavior from NuGet package) -->
+                <Compile Include="..\NativeInvoke\NativeImportAttribute.cs" Link="NativeInvoke\NativeImportAttribute.cs"/>
+            </ItemGroup>
+        </Otherwise>
+    </Choose>
 
 </Project>

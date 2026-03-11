@@ -73,6 +73,79 @@ public sealed class NativeImportAttribute : Attribute
   public string LibraryName { get; }
 
   /// <summary>
+  /// Gets or sets a value indicating whether to enforce blittable type validation
+  /// on method signatures.
+  /// </summary>
+  /// <value>
+  /// <see langword="true"/> to validate that all method parameters and return types
+  /// are blittable types; <see langword="false"/> to skip validation.
+  /// Default is <see langword="true"/>.
+  /// </value>
+  /// <remarks>
+  /// <para>
+  /// Blittable types have the same memory representation in managed and unmanaged code,
+  /// enabling direct marshaling without conversion. This includes:
+  /// <list type="bullet">
+  /// <item>Primitive types (sbyte, byte, short, ushort, int, uint, long, ulong, nint, nuint)</item>
+  /// <item>Floating-point types (float, double)</item>
+  /// <item>Pointer types (including function pointers)</item>
+  /// <item>Enum types</item>
+  /// <item>Structs containing only blittable fields</item>
+  /// </list>
+  /// </para>
+  /// <para>
+  /// When enabled, the source generator will emit a compile-time diagnostic if any
+  /// method in the interface has non-blittable parameters or return types, preventing
+  /// potential runtime marshaling issues.
+  /// </para>
+  /// <para>
+  /// This serves as the default for all methods in the interface. Individual methods
+  /// can override this using <see cref="NativeImportMethodAttribute.EnforceBlittable"/>.
+  /// </para>
+  /// </remarks>
+  public bool EnforceBlittable { get; set; } = true;
+
+  /// <summary>
+  /// Gets or sets a value indicating whether only methods explicitly marked with
+  /// <see cref="NativeImportMethodAttribute"/> should be included in the generated implementation.
+  /// </summary>
+  /// <value>
+  /// <see langword="true"/> to include only methods with an explicit
+  /// <see cref="NativeImportMethodAttribute"/>; <see langword="false"/> to include
+  /// all interface methods by default. Default is <see langword="false"/>.
+  /// </value>
+  /// <remarks>
+  /// <para>
+  /// When set to <see langword="true"/>, methods without a <see cref="NativeImportMethodAttribute"/>
+  /// will be excluded from the generated implementation. This is useful when:
+  /// <list type="bullet">
+  /// <item>The interface contains helper or utility methods that shouldn't be bound</item>
+  /// <item>You want explicit control over which methods are exported</item>
+  /// <item>The interface is large but only a subset of methods are needed</item>
+  /// </list>
+  /// </para>
+  /// <para>
+  /// When set to <see langword="false"/> (default), all methods in the interface are
+  /// included unless explicitly excluded by setting <see cref="NativeImportMethodAttribute.EntryPoint"/>
+  /// to an empty string.
+  /// </para>
+  /// <example>
+  /// <code>
+  /// public interface IMyLib
+  /// {
+  ///     [NativeImportMethod] void Initialize();
+  ///     [NativeImportMethod] void Process();
+  ///     void NotAvailableOnAllPlatforms(); // Excluded when ExplicitOnly is true
+  /// }
+  ///
+  /// [NativeImport("mylib", ExplicitOnly = true)]
+  /// public static partial IMyLib MyLib { get; }
+  /// </code>
+  /// </example>
+  /// </remarks>
+  public bool ExplicitOnly { get; set; } = false;
+
+  /// <summary>
   /// Gets or sets a value indicating whether to include inherited interface members
   /// in the generated implementation.
   /// </summary>
@@ -368,4 +441,29 @@ public sealed class NativeImportMethodAttribute : Attribute
   /// safety considerations when suppressing GC transitions.
   /// </remarks>
   public bool SuppressGCTransition { get; set; }
+
+  /// <summary>
+  /// Gets or sets a value indicating whether to enforce blittable type validation
+  /// for this specific method.
+  /// </summary>
+  /// <value>
+  /// <see langword="true"/> to validate that the method's parameters and return type
+  /// are blittable; <see langword="false"/> to skip validation for this method.
+  /// When not explicitly set, the value from <see cref="NativeImportAttribute.EnforceBlittable"/>
+  /// is used (which defaults to <see langword="true"/>).
+  /// </value>
+  /// <remarks>
+  /// <para>
+  /// This property allows overriding the blittable validation setting on a per-method basis.
+  /// Set to <see langword="true"/> to enforce validation when the parent attribute has it disabled,
+  /// or set to <see langword="false"/> to skip validation for methods that intentionally use
+  /// non-blittable types.
+  /// </para>
+  /// <para>
+  /// Note that the default value of this property is technically <see langword="false"/>,
+  /// but the generator resolves the effective value from the property's
+  /// <see cref="NativeImportAttribute.EnforceBlittable"/> when this property is not explicitly set.
+  /// </para>
+  /// </remarks>
+  public bool EnforceBlittable { get; set; }
 }

@@ -88,6 +88,12 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     {
       var temp = new NativeImportAttribute(string.Empty); // Temporary instance to get the default values
       var libraryName = (string?)pAttr.ConstructorArguments[0].Value ?? "__Internal"; // TODO/FIXME: Report a diagnostic
+      var enforceBlittable = (bool)(pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.EnforceBlittable))
+        .Value.Value ?? temp.EnforceBlittable);
+      var explicitOnly = (bool)(pAttr.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.ExplicitOnly))
+        .Value.Value ?? temp.ExplicitOnly);
       var inherited = (bool)(pAttr.NamedArguments
         .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.Inherited))
         .Value.Value ?? temp.Inherited);
@@ -108,6 +114,8 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
         .Value.Value ?? temp.SymbolSuffix) as string;
       nativeImportAttr = new NativeImportAttribute(libraryName)
       {
+        EnforceBlittable = enforceBlittable,
+        ExplicitOnly = explicitOnly,
         Inherited = inherited,
         Lazy = lazy,
         CallingConvention = defaultCc,
@@ -129,75 +137,100 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       interfacesToProcess.AddRange(iface.AllInterfaces);
     }
 
-    foreach (var currentIface in interfacesToProcess)
+    foreach (var member in interfacesToProcess.SelectMany(static currentIface => currentIface.GetMembers()))
     {
-      foreach (var member in currentIface.GetMembers())
-      {
-        if (member is not IMethodSymbol method) continue;
-        if (method.MethodKind != MethodKind.Ordinary) continue;
-
-        // Create a unique signature key to detect duplicates from interface hierarchy
-        // Format: ReturnType|MethodName|ParamType1,ParamType2,...
-        var signatureKey = BuildMethodSignatureKey(method);
-        if (!seenMethods.Add(signatureKey)) continue; // Skip if already seen (duplicate from hierarchy)
-
-        // Properly identify, ensure it is indeed our specific attribute (not an alias with the same name)
-        var mAttr = method.GetAttributes()
-          .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, nativeImportMethodAttr));
-        string? entryPoint = null;
-        int? ordinal = null;
-        var shouldInclude = true;
-        if (mAttr is not null) // Include if attribute is not present
-        {
-          if (mAttr.ConstructorArguments.Length > 0) // Include if attribute is present, but no arguments
+      if (member is not IMethodSymbol
           {
-            if (mAttr.ConstructorArguments[0].Value is string entry) // Include if attribute is present, but 1st arg is not a string
-            {
-              entryPoint = entry;
-              shouldInclude = !string.IsNullOrWhiteSpace(entryPoint); // Exclude only if the string is null or empty
-            }
-            else if (mAttr.ConstructorArguments[0].Value is int o)
-            {
-              ordinal = o;
-            }
+            MethodKind: MethodKind.Ordinary,
+            IsAbstract: true // Skip C# 8 default interface implementations (methods with body)
+          } method)
+      {
+        continue;
+      }
+
+      // Create a unique signature key to detect duplicates from interface hierarchy
+      // Format: ReturnType|MethodName|ParamType1,ParamType2,...
+      var signatureKey = BuildMethodSignatureKey(method);
+      if (!seenMethods.Add(signatureKey)) continue; // Skip if already seen (duplicate from hierarchy)
+
+      // Properly identify, ensure it is indeed our specific attribute (not an alias with the same name)
+      var mAttr = method.GetAttributes()
+        .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, nativeImportMethodAttr));
+      string? entryPoint = null;
+      int? ordinal = null;
+      var shouldInclude = true;
+      if (mAttr is not null) // Include if attribute is not present
+      {
+        if (mAttr.ConstructorArguments.Length > 0) // Include if attribute is present, but no arguments
+        {
+          if (mAttr.ConstructorArguments[0].Value is string entry) // Include if attribute is present, but 1st arg is not a string
+          {
+            entryPoint = entry;
+            shouldInclude = !string.IsNullOrWhiteSpace(entryPoint); // Exclude only if the string is null or empty
+          }
+          else if (mAttr.ConstructorArguments[0].Value is int o)
+          {
+            ordinal = o;
           }
         }
-        if (!shouldInclude) continue;
-        // Reconstruct the method attribute and create method data
-        var name = method.Name + "_" + Guid.NewGuid().ToString("N"); // Append a Guid to prevent name collisions for overloaded functions
-        entryPoint = ResolveMethodEntryPoint(entryPoint, method.Name, nativeImportAttr.SymbolPrefix, nativeImportAttr.SymbolSuffix);
-        var cc = (mAttr?.NamedArguments
-          .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.CallingConvention))
-          .Value.Value ?? null) as CallingConvention?;
-        var suppressGCTransition = (mAttr?.NamedArguments
-          .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.SuppressGCTransition))
-          .Value.Value ?? null) as bool?;
-        var attr = ordinal.HasValue
-          ? new NativeImportMethodAttribute(ordinal.Value)
-          : new NativeImportMethodAttribute(entryPoint);
-        if (cc.HasValue) attr.CallingConvention = cc.Value;
-        if (suppressGCTransition.HasValue) attr.SuppressGCTransition = suppressGCTransition.Value;
-        methods.Add(new MethodData(method, attr, name, entryPoint, cc ?? nativeImportAttr.CallingConvention, suppressGCTransition ?? nativeImportAttr.SuppressGCTransition));
       }
+      else if (nativeImportAttr.ExplicitOnly) // Include only if the attribute is present
+      {
+        shouldInclude = false;
+      }
+
+      // Reconstruct the method attribute and create method data
+      var name = $"{method.Name}_{Guid.NewGuid():N}"; // Append a Guid to prevent name collisions for overloaded functions
+      entryPoint = shouldInclude ? ResolveMethodEntryPoint(entryPoint, method.Name, nativeImportAttr.SymbolPrefix, nativeImportAttr.SymbolSuffix) : string.Empty;
+      var cc = (mAttr?.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.CallingConvention))
+        .Value.Value ?? null) as CallingConvention?;
+      var suppressGCTransition = (mAttr?.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.SuppressGCTransition))
+        .Value.Value ?? null) as bool?;
+      var enforceBlittable = (mAttr?.NamedArguments
+        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.EnforceBlittable))
+        .Value.Value ?? null) as bool?;
+      var attr = ordinal.HasValue
+        ? new NativeImportMethodAttribute(ordinal.Value)
+        : new NativeImportMethodAttribute(entryPoint);
+      if (cc.HasValue) attr.CallingConvention = cc.Value;
+      if (suppressGCTransition.HasValue) attr.SuppressGCTransition = suppressGCTransition.Value;
+      if (enforceBlittable.HasValue) attr.EnforceBlittable = enforceBlittable.Value;
+      methods.Add(
+        new MethodData(
+          method, attr,
+          name, entryPoint,
+          cc ?? nativeImportAttr.CallingConvention,
+          suppressGCTransition ?? nativeImportAttr.SuppressGCTransition,
+          enforceBlittable ?? nativeImportAttr.EnforceBlittable,
+          shouldInclude
+        )
+      );
     }
 
     // Blittability check
-    foreach (var data in methods)
+    //if (nativeImportAttr.EnforceBlittable) // global flag
     {
-      var m = data.Method;
-      if (!IsBlittable(m.ReturnType) || m.Parameters.Any(static p => !IsBlittable(p.Type)))
+      foreach (var data in methods)
       {
-        spc.ReportDiagnostic(Diagnostic.Create(
-          Diagnostics.NonBlittableSignature,
-          m.Locations[0],
-          $"{iface.Name}.{m.Name}"));
-        return;
+        if (!data.EnforceBlittable) continue; // per-method override
+        var m = data.Method;
+        if (!IsBlittable(m.ReturnType) || m.Parameters.Any(static p => !IsBlittable(p.Type)))
+        {
+          spc.ReportDiagnostic(Diagnostic.Create(
+            Diagnostics.NonBlittableSignature,
+            m.Locations[0],
+            $"{iface.Name}.{m.Name}"));
+          return;
+        }
       }
     }
 
-    if (methods.Count > 0) // Early exit if we have no methods
+    if (methods.Count > 0) // Exit early if we have no methods to process
     {
       var source = GenerateSource(containingType, prop, iface, methods.ToArray(), nativeImportAttr);
+      // Generate a file per container type
       spc.AddSource($"{containingType.Name}.{prop.Name}-{Guid.NewGuid():N}.g.cs", source); // Append Guid to avoid collisions, just in case
     }
   }
@@ -268,12 +301,14 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     }
 
     // 3. The property
+    var innerImplName = $"__Impl_{prop.Name}_{Guid.NewGuid():N}"; // Append Guid to avoid collisions, just in case
     var propAcc = GetAccessibilityString(prop);
-    sb.Append(Indent()).AppendLine($"{propAcc}static partial {iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {prop.Name} => field ??= new __Impl();"); // C# 14 (compiler synthesized backing field)
+    sb.Append(Indent()).AppendLine($"{propAcc}static partial {iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {prop.Name} => field ??= new {innerImplName}();"); // C# 14 (compiler synthesized backing field)
     sb.AppendLine();
 
     // 4. Generate inner implementation
-    sb.Append(Indent()).AppendLine($"private sealed unsafe class __Impl : {iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
+    // TODO/CONS: Use C# 11 file-local type (must be defined at top-level)
+    sb.Append(Indent()).AppendLine($"private sealed unsafe class {innerImplName} : {iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
     sb.Append(Indent()).AppendLine("{");
 
     var innerIndent = Indent() + "    ";
@@ -283,12 +318,12 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     var lazy = nativeImportAttr.Lazy;
     if (lazy)
     {
-      sb.Append(innerIndent).AppendLine($"static __Impl() {{ if (!global::System.Runtime.InteropServices.NativeLibrary.TryLoad({nativeImportAttr.LibraryName.Literal}, out __lib)) {{ throw new global::System.DllNotFoundException({nativeImportAttr.LibraryName.Literal}); }} }}");
-      EmitLazy(sb, methods, nativeImportAttr);
+      sb.Append(innerIndent).AppendLine($"static {innerImplName}() {{ if (!global::System.Runtime.InteropServices.NativeLibrary.TryLoad({nativeImportAttr.LibraryName.Literal}, out __lib)) {{ throw new global::System.DllNotFoundException({nativeImportAttr.LibraryName.Literal}); }} }}");
+      EmitLazy(sb, methods, nativeImportAttr, innerImplName);
     }
     else
     {
-      EmitEager(sb, methods, nativeImportAttr);
+      EmitEager(sb, methods, nativeImportAttr, innerImplName);
     }
 
     foreach (var data in methods)
@@ -298,14 +333,22 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       var paramsList = string.Join(", ", m.Parameters.Select(static p => $"{p.Type.ToDisplayString()} {p.Name}"));
       var argsList = string.Join(", ", m.Parameters.Select(static p => p.Name));
 
-      if (!lazy) sb.Append(innerIndent).AppendLine("[global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-      sb.Append(innerIndent).AppendLine($"public {ret} {m.Name}({paramsList})");
-      sb.Append(innerIndent).AppendLine("{");
-      if (lazy) sb.AppendLine($"{innerIndent}    __Ensure_{data.Name}();");
-      sb.Append(innerIndent).Append("    ");
-      if (!m.ReturnsVoid) sb.Append("return ");
-      sb.AppendLine($"__fp_{data.Name}({argsList});");
-      sb.Append(innerIndent).AppendLine("}");
+      if (data.ShouldInclude)
+      {
+        if (!lazy) sb.Append(innerIndent).AppendLine("[global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+        sb.Append(innerIndent).AppendLine($"public {ret} {m.Name}({paramsList})");
+        sb.Append(innerIndent).AppendLine("{");
+        if (lazy) sb.AppendLine($"{innerIndent}    __Ensure_{data.Name}();");
+        sb.Append(innerIndent).Append("    ");
+        if (!m.ReturnsVoid) sb.Append("return ");
+        sb.AppendLine($"__fp_{data.Name}({argsList});");
+        sb.Append(innerIndent).AppendLine("}");
+      }
+      else
+      {
+        // Generate throw null stub for excluded methods
+        sb.Append(innerIndent).AppendLine($"public {ret} {m.Name}({paramsList}) => throw null;");
+      }
     }
 
     // 4. Close all braces
@@ -319,20 +362,20 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     return sb.ToString();
   }
 
-  private static void EmitLazy(StringBuilder sb, MethodData[] methods, NativeImportAttribute nativeImportAttr)
+  private static void EmitLazy(StringBuilder sb, MethodData[] methods, NativeImportAttribute nativeImportAttr, string innerImplName)
   {
-    // Fields
-    foreach (var data in methods)
+    // Fields - only for included methods
+    foreach (var data in methods.Where(static m => m.ShouldInclude))
     {
       sb.AppendLine($"private static readonly global::System.Threading.Lock __lock_{data.Name} = new();"); // .NET 9
-      sb.AppendLine($"private static nint __addr_{data.Name};");
+      sb.AppendLine($"private static nint __addr_{data.Name};"); // C# 9 (enhanced IntPtr)
       sb.AppendLine($"private static bool __resolved_{data.Name};"); // TODO/CONS: Maybe remove this and do a null check against addr field
       sb.AppendLine($"private static {data.FunctionPointerType} __fp_{data.Name};");
       sb.AppendLine();
     }
 
-    // Ensure methods
-    foreach (var data in methods)
+    // Ensure methods - only for included methods
+    foreach (var data in methods.Where(static m => m.ShouldInclude))
     {
       sb.AppendLine($"private static void __Ensure_{data.Name}()");
       sb.AppendLine("{");
@@ -361,21 +404,21 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     }
   }
 
-  private static void EmitEager(StringBuilder sb, MethodData[] methods, NativeImportAttribute nativeImportAttr)
+  private static void EmitEager(StringBuilder sb, MethodData[] methods, NativeImportAttribute nativeImportAttr, string innerImplName)
   {
-    // Function pointer fields
-    foreach (var data in methods)
+    // Function pointer fields - only for included methods
+    foreach (var data in methods.Where(static m => m.ShouldInclude))
     {
-      sb.AppendLine($"private static readonly {data.FunctionPointerType} __fp_{data.Name};");
+      sb.AppendLine($"private static readonly {data.FunctionPointerType} __fp_{data.Name};"); // C# 9 (function pointer)
     }
 
     sb.AppendLine();
-    sb.AppendLine("static __Impl()");
+    sb.AppendLine($"static {innerImplName}()");
     sb.AppendLine("{");
     sb.AppendLine($"    if (!global::System.Runtime.InteropServices.NativeLibrary.TryLoad({nativeImportAttr.LibraryName.Literal}, out __lib)) {{ throw new global::System.DllNotFoundException({nativeImportAttr.LibraryName.Literal}); }}");
 
-    // Initialize function pointers
-    foreach (var data in methods)
+    // Initialize function pointers - only for included methods
+    foreach (var data in methods.Where(static m => m.ShouldInclude))
     {
       sb.AppendLine("    {");
       sb.AppendLine($"        if (!global::System.Runtime.InteropServices.NativeLibrary.TryGetExport(__lib, {data.EntryPoint.Literal}, out var __addr_{data.Name}))");
@@ -389,11 +432,11 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       sb.AppendLine("    }");
     }
 
-    sb.AppendLine("}");
+    sb.AppendLine("}"); // Close static constructor
     sb.AppendLine();
   }
 
-  internal sealed class MethodData
+  private sealed class MethodData
   {
     public MethodData(
       IMethodSymbol Method,
@@ -401,7 +444,9 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       string Name,
       string EntryPoint,
       CallingConvention CallingConvention,
-      bool SuppressGCTransition)
+      bool SuppressGCTransition,
+      bool EnforceBlittable,
+      bool ShouldInclude)
     {
       this.Method = Method;
       this.Attribute = Attribute;
@@ -409,23 +454,33 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       this.EntryPoint = EntryPoint;
       this.CallingConvention = CallingConvention;
       this.SuppressGCTransition = SuppressGCTransition;
-      this.FunctionPointerType = ResolveFunctionPointerType(this);
+      this.EnforceBlittable = EnforceBlittable;
+      this.ShouldInclude = ShouldInclude;
+      FunctionPointerType = ResolveFunctionPointerType(this);
     }
 
     public IMethodSymbol Method { get; }
+
+    /// <summary>unmodified method's reconstructed attribute data</summary>
     public NativeImportMethodAttribute Attribute { get; }
 
-    /// <summary>unique name after resolving prefix/suffix</summary>
+    /// <summary>unique name (for field name)</summary>
     public string Name { get; }
 
-    /// <summary>final entry point after resolving attributes</summary>
+    /// <summary>final effective entry point after resolving attributes</summary>
     public string EntryPoint { get; }
 
-    /// <summary>final calling convention after resolving attributes</summary>
+    /// <summary>final effective calling convention after resolving attributes</summary>
     public CallingConvention CallingConvention { get; }
 
-    /// <summary>final suppress GC transition after resolving attributes</summary>
+    /// <summary>final effective suppress GC transition after resolving attributes</summary>
     public bool SuppressGCTransition { get; }
+
+    /// <summary>final effective enforce blittable after resolving attributes</summary>
+    public bool EnforceBlittable { get; }
+
+    /// <summary>whether this method should be included in native imports (false = generate throw null stub)</summary>
+    public bool ShouldInclude { get; }
 
     /// <summary>final computed function-pointer type</summary>
     public string FunctionPointerType { get; }
@@ -437,6 +492,8 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       out string EntryPoint,
       out CallingConvention CallingConvention,
       out bool SuppressGCTransition,
+      out bool EnforceBlittable,
+      out bool ShouldInclude,
       out string FunctionPointerType)
     {
       Method = this.Method;
@@ -445,6 +502,8 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       EntryPoint = this.EntryPoint;
       CallingConvention = this.CallingConvention;
       SuppressGCTransition = this.SuppressGCTransition;
+      EnforceBlittable = this.EnforceBlittable;
+      ShouldInclude = this.ShouldInclude;
       FunctionPointerType = this.FunctionPointerType;
     }
   }

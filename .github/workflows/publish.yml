@@ -51,7 +51,7 @@ jobs:
           echo "DOTNET_VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - name: Restore dependencies
-        run: dotnet restore -p:Version=$DOTNET_VERSION
+        run: dotnet restore --no-cache -p:Version=$DOTNET_VERSION
 
       - name: Build solution
         run: dotnet build -c Release --no-restore --no-incremental -p:Version=$DOTNET_VERSION
