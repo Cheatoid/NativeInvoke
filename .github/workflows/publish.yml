@@ -39,16 +39,16 @@ jobs:
       - name: Determine version (manual dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          VERSION="v${{ github.event.inputs.version }}"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          TAG="v${{ github.event.inputs.version }}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
           # Create a tag for MinVer to detect
-          git tag $VERSION
+          git tag $TAG
 
       - name: Determine version (tag push)
         if: ${{ github.event_name == 'push' }}
         run: |
-          VERSION="${{ github.ref_name }}"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          TAG="${{ github.ref_name }}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Restore dependencies
         run: dotnet restore --no-cache
@@ -62,7 +62,7 @@ jobs:
       - name: Create zip artifact
         run: |
           mkdir zip
-          zip -r "zip/NativeInvoke-${VERSION}.zip" ./bin
+          zip -r "zip/NativeInvoke-${TAG}.zip" ./bin
 
       - name: Upload zip artifact
         uses: actions/upload-artifact@v7
@@ -76,7 +76,7 @@ jobs:
           echo "## Changelog" > CHANGELOG.md
           echo "" >> CHANGELOG.md
 
-          CUR_TAG="${VERSION}"
+          CUR_TAG="${TAG}"
 
           # Find previous tag (if any)
           PREV_TAG=$(git describe --tags --abbrev=0 --match "v*" --exclude "$CUR_TAG" 2>/dev/null || echo "")
@@ -118,11 +118,11 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.VERSION }}
-          name: "NativeInvoke ${{ env.VERSION }}"
+          tag_name: ${{ env.TAG }}
+          name: "NativeInvoke ${{ env.TAG }}"
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
-          prerelease: ${{ contains(env.VERSION, '-') }}
+          prerelease: ${{ contains(env.TAG, '-') }}
           #generate_release_notes: true
           files: |
             nupkg/*.nupkg
