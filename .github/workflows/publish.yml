@@ -19,6 +19,8 @@ jobs:
   build:
     name: Ubuntu
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Enable GitHub OIDC token issuance for Trusted Publishing
 
     env:
       DOTNET_NOLOGO: true
@@ -112,8 +114,14 @@ jobs:
           name: nuget-package
           path: ./nupkg/*.nupkg
 
+      - name: NuGet login (get temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to NuGet
-        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
