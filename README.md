@@ -5,7 +5,8 @@
 [![Stars](https://img.shields.io/github/stars/Cheatoid/NativeInvoke?style=flat-square&color=00f0ff&labelColor=001f2b)](https://github.com/Cheatoid/NativeInvoke/stargazers) 
 [![Issues](https://img.shields.io/github/issues/Cheatoid/NativeInvoke?style=flat-square&color=397f14&labelColor=002b00)](https://github.com/Cheatoid/NativeInvoke/issues) 
 [![License](https://img.shields.io/github/license/Cheatoid/NativeInvoke?style=flat-square&color=ff00e6&labelColor=2b001f)](https://github.com/Cheatoid/NativeInvoke/blob/main/LICENSE) 
-[![NativeInvoke](https://readme-typing-svg.herokuapp.com?size=32&duration=7000&color=00F7FF&center=true&vCenter=true&width=800&lines=hello,+stranger;welcome+to+NativeInvoke+codebase;made+with+%E2%9D%A4%EF%B8%8F+by+Cheatoid)](https://github.com/Cheatoid/NativeInvoke) 
+[![Discord](https://img.shields.io/badge/Discord-Join-2c2f33?style=flat-square&logo=discord&logoColor=white&labelColor=5865f2)](https://discord.gg/FVCeYxwWtB)
+[![NativeInvoke](https://readme-typing-svg.herokuapp.com?font=Fira+Code&duration=5000&pause=2500&size=32&color=00F7FF&center=true&vCenter=true&width=800&lines=hello,+stranger;welcome+to+NativeInvoke+codebase;made+with+%E2%9D%A4%EF%B8%8F+by+Cheatoid)](https://github.com/Cheatoid/NativeInvoke)
 </div>
 
 ### *High-performance, source-generated P/Invoke*
