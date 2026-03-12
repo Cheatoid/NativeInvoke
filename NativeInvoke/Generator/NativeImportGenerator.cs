@@ -140,10 +140,10 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     foreach (var member in interfacesToProcess.SelectMany(static currentIface => currentIface.GetMembers()))
     {
       if (member is not IMethodSymbol
-          {
-            MethodKind: MethodKind.Ordinary,
-            IsAbstract: true // Skip C# 8 default interface implementations (methods with body)
-          } method)
+        {
+          MethodKind: MethodKind.Ordinary,
+          IsAbstract: true // Skip C# 8 default interface implementations (methods with body)
+        } method)
       {
         continue;
       }
@@ -159,18 +159,20 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       string? entryPoint = null;
       int? ordinal = null;
       var shouldInclude = true;
-      if (mAttr is not null) // Include if attribute is not present
+      if (mAttr is not null) // Attribute is not present
       {
-        if (mAttr.ConstructorArguments.Length > 0) // Include if attribute is present, but no arguments
+        if (mAttr.ConstructorArguments.Length > 0) // Attribute provided with arguments
         {
-          if (mAttr.ConstructorArguments[0].Value is string entry) // Include if attribute is present, but 1st arg is not a string
-          {
-            entryPoint = entry;
-            shouldInclude = !string.IsNullOrWhiteSpace(entryPoint); // Exclude only if the string is null or empty
-          }
-          else if (mAttr.ConstructorArguments[0].Value is int o)
+          var argValue = mAttr.ConstructorArguments[0].Value;
+          if (argValue is int o)
           {
             ordinal = o;
+          }
+          else
+          {
+            // Treat both null and empty/whitespace strings as explicit exclusion
+            entryPoint = argValue as string; // may be null
+            shouldInclude = !string.IsNullOrWhiteSpace(entryPoint);
           }
         }
       }
@@ -214,7 +216,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     {
       foreach (var data in methods)
       {
-        if (!data.EnforceBlittable) continue; // per-method override
+        if (!data.EnforceBlittable) continue; // Check per-method override (effective value)
         var m = data.Method;
         if (!IsBlittable(m.ReturnType) || m.Parameters.Any(static p => !IsBlittable(p.Type)))
         {
