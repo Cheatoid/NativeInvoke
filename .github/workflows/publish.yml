@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # Enable GitHub OIDC token issuance for Trusted Publishing
+      contents: write  # Needed for creating GitHub releases
 
     env:
       DOTNET_NOLOGO: true
@@ -31,7 +32,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0   # IMPORTANT: needed for changelog history
+          fetch-depth: 0  # IMPORTANT: needed for changelog history
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
