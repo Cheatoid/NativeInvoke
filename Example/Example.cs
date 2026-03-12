@@ -19,7 +19,7 @@ namespace Example;
 #region kernel32
 
 [SupportedOSPlatform("windows")] // Optional (for clarity)
-public interface IKernel32<TBool, TDWord> : IKernel // Generics are supported!
+public interface IKernel32<TBool, TDWord> // Generics are supported!
   where TBool : unmanaged
   where TDWord : unmanaged
 {
@@ -52,11 +52,27 @@ public unsafe interface IUser32<TAnsiChar, TWideChar>
   where TAnsiChar : unmanaged
   where TWideChar : unmanaged
 {
-  [NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
-  int MessageBoxA(HWND hWnd, ReadOnlySpan<byte> lpText, ReadOnlySpan<byte> lpCaption, UINT uType);
+  //[NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
+  int MessageBoxA(HWND hWnd, ReadOnlySpan<byte> lpText, ReadOnlySpan<byte> lpCaption, UINT uType)
+  {
+    //fixed (byte* textPtr = lpText, captionPtr = lpCaption)
+    {
+      var textPtr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(lpText));
+      var captionPtr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(lpCaption));
+      return MessageBoxA(hWnd, (TAnsiChar*)textPtr, (TAnsiChar*)captionPtr, uType);
+    }
+  }
   int MessageBoxA(HWND hWnd, TAnsiChar* lpText, TAnsiChar* lpCaption, UINT uType);
-  [NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
-  int MessageBoxW(HWND hWnd, ReadOnlySpan<TWideChar> lpText, ReadOnlySpan<TWideChar> lpCaption, UINT uType);
+  //[NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
+  int MessageBoxW(HWND hWnd, ReadOnlySpan<TWideChar> lpText, ReadOnlySpan<TWideChar> lpCaption, UINT uType)
+  {
+    //fixed (void* textPtr = lpText, captionPtr = lpCaption)
+    {
+      var textPtr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(lpText));
+      var captionPtr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(lpCaption));
+      return MessageBox(hWnd, (TWideChar*)textPtr, (TWideChar*)captionPtr, uType);
+    }
+  }
   [NIMA("MessageBoxW")]
   int MessageBox(HWND hWnd, TWideChar* lpText, TWideChar* lpCaption, UINT uType);
 }
@@ -86,7 +102,7 @@ internal sealed partial class Win32 // Container can be class/struct/interface/r
 
   [NativeImport(
     kernel32 // Specify native library name
-    //, EnforceBlittable = true // Whether to enforce blittable type validation (applies to all methods, can be overriden per-method)
+             //, EnforceBlittable = true // Whether to enforce blittable type validation (applies to all methods, can be overriden per-method)
     , ExplicitOnly = true // Whether only methods explicitly marked with NIMA should be considered
     , Inherited = false // Whether to consider inherited interface methods
     , Lazy = true // Whether to use lazy or eager module loading
@@ -136,22 +152,32 @@ internal static unsafe partial class Program
 
     Debugger.Launch();
 
+    #region NativeInvoke
+
     Win32.Kernel32.Boop(500u, 1000u);
     Win32.Kernel32.Beep(600, 1000); // included because Inherited is true
     Win32.Kernel32.Beep(700u, 1000u);
 
-    Win32.User32.MessageBoxA(0, "Zero allocation example, ANSI"u8, "NativeInvoke"u8, 0u);
+    const UINT MB_TOPMOST = 0x40000U;
 
-    Win32.User32.MessageBoxW(0, "Zero allocation example, Unicode", "NativeInvoke", 0u); // NOTE: .AsSpan() is redundant since C# 14
+    Win32.User32.MessageBoxA(0, "No pinning, no copying, no marshalling, no allocation via UTF-8 literal strings - ANSI"u8, "NativeInvoke"u8, MB_TOPMOST); // C# 11 (UTF-8 string literals)
 
-    fixed (LPCWSTR text = "Allocation and pinning example, Unicode", caption = "NativeInvoke")
+    Win32.User32.MessageBoxW(0, "No pinning, no copying, no marshalling, no allocation via C# (UTF-16) string literals - Unicode", "NativeInvoke", MB_TOPMOST); // NOTE: .AsSpan() is redundant since C# 14
+
+    fixed (LPCWSTR text = "The only allocations here are the string literals, which are stored in metadata and interned; Pinning example, Unicode", caption = "NativeInvoke")
     {
-      Win32.User32.MessageBox(0, text, caption, /*MB_ICONWARNING*/0x30u);
+      Win32.User32.MessageBox(0, text, caption, MB_TOPMOST);
     }
+
+    #endregion NativeInvoke
+
+    #region LibraryImport
 
     PlayBeep(800u, 1000u);
 
-    MessageBox(0, "Zero allocation example, Unicode", "LibraryImport", 0u);
+    MessageBox(0, "Zero allocation with pinning example, Unicode", "LibraryImport", MB_TOPMOST);
+
+    #endregion LibraryImport
 
     Console.ReadKey(true);
   }
