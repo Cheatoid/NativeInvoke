@@ -36,14 +36,14 @@
     <Choose>
         <When Condition="'$(UsePackageRef)'=='true'">
             <ItemGroup>
-                <PackageReference Include="NativeInvoke" Version="*-*"/>
+                <PackageReference Include="NativeInvoke" Version="*"/>
             </ItemGroup>
         </When>
         <Otherwise>
             <ItemGroup>
                 <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
                 <!-- Include attribute source file for development/testing (simulates contentFiles behavior from NuGet package) -->
-                <Compile Include="..\NativeInvoke\NativeImportAttribute.cs" Link="NativeInvoke\NativeImportAttribute.cs"/>
+                <Compile Include="..\NativeInvoke\NativeImportAttribute.cs" Link="NativeInvoke\NativeImportAttribute.cs" Visible="false"/>
             </ItemGroup>
         </Otherwise>
     </Choose>

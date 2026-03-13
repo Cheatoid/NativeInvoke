@@ -1,3 +1,5 @@
+//#define DEBUG_GENERATOR // uncomment to enable debugging
+
 namespace NativeInvoke.Generator;
 
 [Generator]
@@ -79,7 +81,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
 
     var iface = (INamedTypeSymbol)prop.Type;
 
-#if DEBUG
+#if DEBUG_GENERATOR
     Debugger.Launch();
 #endif
 

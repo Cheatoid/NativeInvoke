@@ -129,4 +129,9 @@
         </Content>
     </ItemGroup>
 
+    <!-- Fallback: Inject the attribute source file into the consumer project (zero runtime dependency) -->
+    <!--<ItemGroup>
+        <None Include="NativeImportAttribute.cs" Pack="true" PackagePath="build/NativeImportAttribute.cs"/>
+    </ItemGroup>-->
+
 </Project>

@@ -102,7 +102,7 @@ internal sealed partial class Win32 // Container can be class/struct/interface/r
 
   [NativeImport(
     kernel32 // Specify native library name
-             //, EnforceBlittable = true // Whether to enforce blittable type validation (applies to all methods, can be overriden per-method)
+    //, EnforceBlittable = true // Whether to enforce blittable type validation (applies to all methods, can be overriden per-method)
     , ExplicitOnly = true // Whether only methods explicitly marked with NIMA should be considered
     , Inherited = false // Whether to consider inherited interface methods
     , Lazy = true // Whether to use lazy or eager module loading
@@ -155,7 +155,7 @@ internal static unsafe partial class Program
     #region NativeInvoke
 
     Win32.Kernel32.Boop(500u, 1000u);
-    Win32.Kernel32.Beep(600, 1000); // included because Inherited is true
+    Win32.Kernel32.Beep(600, 1000);
     Win32.Kernel32.Beep(700u, 1000u);
 
     const UINT MB_TOPMOST = 0x40000U;
