@@ -2,7 +2,7 @@
     <Project Path="Example/Example.csproj">
         <BuildDependency Project="NativeInvoke/NativeInvoke.csproj" />
         <BuildType Solution="Debug|*" Project="Local" />
-        <BuildType Solution="Release|*" Project="NuGet" />
+        <BuildType Solution="Release|*" Project="Local" />
     </Project>
     <Project Path="NativeInvoke/NativeInvoke.csproj" />
 </Solution>
