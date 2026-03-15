@@ -54,10 +54,7 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Restore dependencies
-        run: |
-          nuget update -self
-          nuget restore
-          dotnet restore --no-cache
+        run: dotnet restore --no-cache
 
       - name: Build solution
         run: dotnet build -c Release --no-restore --no-incremental
