@@ -437,4 +437,4 @@ FodyWeavers.xsd
 *.msp
 
 # Custom
-/nupkg/
+/nupkg/*.nupkg
