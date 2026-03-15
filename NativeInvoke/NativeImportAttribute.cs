@@ -1,6 +1,7 @@
 // This file is part of NativeInvoke NuGet package; https://github.com/Cheatoid/NativeInvoke
 // Licensed under MIT. Copyright © Cheatoid.
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace NativeInvoke;
