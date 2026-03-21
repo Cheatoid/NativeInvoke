@@ -33,4 +33,20 @@ internal static partial class Diagnostics
     category: "NativeInvoke",
     defaultSeverity: DiagnosticSeverity.Error,
     isEnabledByDefault: true);
+
+  public static readonly DiagnosticDescriptor EmptyInterface = new(
+    id: "NINVK005",
+    title: "Interface has no valid methods",
+    messageFormat: "Interface '{0}' has no valid methods to generate (ensure the interface contains at least one method)",
+    category: "NativeInvoke",
+    defaultSeverity: DiagnosticSeverity.Warning,
+    isEnabledByDefault: true);
+
+  public static readonly DiagnosticDescriptor MissingLibraryName = new(
+    id: "NINVK006",
+    title: "Missing library name",
+    messageFormat: "[NativeImport] attribute requires a library name (provide a valid library name via the constructor parameter)",
+    category: "NativeInvoke",
+    defaultSeverity: DiagnosticSeverity.Error,
+    isEnabledByDefault: true);
 }

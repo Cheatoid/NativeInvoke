@@ -102,11 +102,27 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     Debugger.Launch();
 #endif
 
+    // Validate library name is provided
+    if (pAttr.ConstructorArguments.Length == 0)
+    {
+      spc.ReportDiagnostic(Diagnostic.Create(
+        Diagnostics.MissingLibraryName,
+        prop.Locations[0]));
+      return;
+    }
+    var libraryName = pAttr.ConstructorArguments[0].Value as string;
+    if (string.IsNullOrEmpty(libraryName))
+    {
+      spc.ReportDiagnostic(Diagnostic.Create(
+        Diagnostics.MissingLibraryName,
+        prop.Locations[0]));
+      return;
+    }
+
     // Attribute data
     NativeImportAttribute nativeImportAttr;
     {
       var temp = new NativeImportAttribute(string.Empty); // Temporary instance to get the default values
-      var libraryName = (string?)pAttr.ConstructorArguments[0].Value ?? "__Internal"; // TODO/FIXME: Report a diagnostic
       var enforceBlittable = (bool)(pAttr.NamedArguments
         .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.EnforceBlittable))
         .Value.Value ?? temp.EnforceBlittable);
@@ -131,7 +147,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       var symbolSuffix = (pAttr.NamedArguments
         .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SymbolSuffix))
         .Value.Value ?? temp.SymbolSuffix) as string;
-      nativeImportAttr = new NativeImportAttribute(libraryName)
+      nativeImportAttr = new NativeImportAttribute(libraryName!)
       {
         EnforceBlittable = enforceBlittable,
         ExplicitOnly = explicitOnly,
@@ -253,6 +269,14 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       var source = GenerateSource(containingType, prop, iface, methods.ToArray(), nativeImportAttr);
       // Generate a file per container type
       spc.AddSource($"{containingType.Name}.{prop.Name}-{Guid.NewGuid():N}.g.cs", source); // Append Guid to avoid collisions, just in case
+    }
+    else
+    {
+      // Report warning for empty interfaces
+      spc.ReportDiagnostic(Diagnostic.Create(
+        Diagnostics.EmptyInterface,
+        prop.Locations[0],
+        iface.Name));
     }
   }
 
