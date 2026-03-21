@@ -5,6 +5,23 @@ namespace NativeInvoke.Generator;
 [Generator]
 public sealed class NativeImportGenerator : IIncrementalGenerator
 {
+  private static readonly HashSet<string> ContextualKeywordsThatNeedEscaping;
+
+  static NativeImportGenerator()
+  {
+    ContextualKeywordsThatNeedEscaping = new HashSet<string>(StringComparer.Ordinal)
+    {
+      // Query keywords
+      "from", "where", "select", "group", "into", "orderby", "join", "on", "equals", "by",
+      "ascending", "descending", "let",
+      // Async keywords
+      "async", "await",
+      // Other contextual keywords
+      "when", "yield", "partial", "file", "required", "init", "set", "get", "add", "remove",
+      "nameof", "var", "dynamic"
+    };
+  }
+
   public void Initialize(IncrementalGeneratorInitializationContext context)
   {
     // Incremental source generator is awesome
@@ -334,8 +351,8 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     {
       var m = data.Method;
       var ret = m.ReturnType.ToDisplayString();
-      var paramsList = string.Join(", ", m.Parameters.Select(static p => $"{p.Type.ToDisplayString()} {p.Name}"));
-      var argsList = string.Join(", ", m.Parameters.Select(static p => p.Name));
+      var paramsList = string.Join(", ", m.Parameters.Select(static p => $"{p.Type.ToDisplayString()} {EscapeParameterName(p)}"));
+      var argsList = string.Join(", ", m.Parameters.Select(static p => EscapeParameterName(p)));
 
       if (data.ShouldInclude)
       {
@@ -595,6 +612,51 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       Accessibility.ProtectedAndInternal => "private protected ",
       _ => ""
     };
+
+  private static string EscapeParameterName(IParameterSymbol parameter)
+  {
+    // https://github.com/Cheatoid/NativeInvoke/issues/1
+    // Try to get the raw parameter name from source to preserve @ prefix if it exists
+    var rawName = GetRawParameterName(parameter);
+    if (!string.IsNullOrEmpty(rawName))
+    {
+      // If we have the raw name with @ prefix, use it directly
+      return rawName;
+    }
+
+    // Fallback: Use the symbol name and escape if it's a keyword
+    var name = parameter.Name;
+    return ShouldEscapeIdentifier(name) ? $"@{name}" : name;
+  }
+
+  private static string GetRawParameterName(IParameterSymbol parameter)
+  {
+    // Try to get the syntax reference for this parameter
+    var syntaxReferences = parameter.DeclaringSyntaxReferences;
+    if (syntaxReferences.Length == 0) return string.Empty;
+
+    var syntax = syntaxReferences[0].GetSyntax();
+    if (syntax is ParameterSyntax parameterSyntax)
+    {
+      // Get the identifier text which preserves the @ prefix
+      return parameterSyntax.Identifier.Text;
+    }
+
+    return string.Empty;
+  }
+
+  private static bool ShouldEscapeIdentifier(string identifier)
+  {
+    // Use Roslyn's SyntaxFacts to check if it's a keyword
+    if (SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None)
+    {
+      return true;
+    }
+
+    // Check for contextual keywords that need escaping in certain contexts
+    // These are keywords that are only reserved in specific contexts
+    return ContextualKeywordsThatNeedEscaping.Contains(identifier);
+  }
 }
 
 internal static partial class Extensions
