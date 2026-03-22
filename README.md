@@ -157,7 +157,7 @@ All without touching your container type.
 - [ ] Switch to `[UnmanagedCallConv]`/`typeof(CallConv*)` for future-proofed calling conventions (MemberFunction, Swift, etc.)
 - [x] ~~Format generated code using Roslyn, or use `IndentedTextWriter` for source-code generation~~
 - [x] ~~Append `Guid` to generated fields (to prevent name collisions for overloaded functions)~~
-- [ ] Make unit tests
+- [x] ~~Make unit tests~~
 - [ ] Auto-generate proper page for docs and examples (maybe use GitHub io page or wiki)
 - [ ] Explore micro-optimization: IL weaver via `Fody`, replace interface dispatch and `DllImport` calls with `calli`
 
