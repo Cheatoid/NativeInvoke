@@ -1,7 +1,7 @@
 ; Shipped analyzer releases
 ; https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
 
-## 1.0.0
+## Release 1.0.0
 
 ### New Rules
 
@@ -13,7 +13,7 @@ NINVK003 | NativeInvoke | Error | Property type must be interface to use [Native
 NINVK004 | NativeInvoke | Error | Method has non-blittable signature
 
 
-## 1.3.5
+## Release 1.3.5
 
 ### New Rules
 
@@ -23,7 +23,7 @@ NINVK005 | NativeInvoke | Warning | Interface has no valid methods to generate
 NINVK006 | NativeInvoke | Error | Missing library name in [NativeImport] attribute
 
 
-## 1.3.6
+## Release 1.3.6
 
 ### New Rules
 

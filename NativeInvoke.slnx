@@ -5,4 +5,9 @@
         <BuildType Solution="Release|*" Project="Local" />
     </Project>
     <Project Path="NativeInvoke/NativeInvoke.csproj" />
+    <Project Path="NativeInvoke.Tests/NativeInvoke.Tests.csproj">
+        <BuildDependency Project="NativeInvoke/NativeInvoke.csproj" />
+        <BuildType Solution="Debug|*" Project="Local" />
+        <BuildType Solution="Release|*" Project="Local" />
+    </Project>
 </Solution>
