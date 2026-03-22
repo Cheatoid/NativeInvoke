@@ -15,11 +15,11 @@ public static class SourceGeneratorTestHelpers
     {
         // Create compilation
         var compilation = CreateCompilation(sourceCode, additionalReferences);
-        
+
         // Run generator
-        var driver = CSharpGeneratorDriver.Create(generator).WithUpdatedParseOptions(compilation.Options.SyntaxOptions);
+        var driver = CSharpGeneratorDriver.Create(generator);
         var runResult = driver.RunGenerators(compilation).GetRunResult();
-        
+
         var generatedSources = runResult.Results
             .SelectMany(r => r.GeneratedSources)
             .ToImmutableArray();
@@ -56,7 +56,7 @@ public static class SourceGeneratorTestHelpers
             .ToArray();
 
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
-        
+
         return CSharpCompilation.Create(
             assemblyName: "TestAssembly",
             syntaxTrees: new[] { syntaxTree },
@@ -64,7 +64,7 @@ public static class SourceGeneratorTestHelpers
             options: new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 allowUnsafe: true,
-                nullable: NullableOptions.Enable));
+                nullableContextOptions: NullableContextOptions.Enable));
     }
 
     /// <summary>
@@ -80,10 +80,10 @@ public static class SourceGeneratorTestHelpers
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "NativeInvoke", "bin", "NativeInvoke.dll"),
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "bin", "NativeInvoke.dll"),
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NativeInvoke.dll"),
-            
+
             // Try current directory and subdirectories
             "NativeInvoke.dll",
-            
+
             // Fallback to common output directories
             Path.Combine("..", "bin", "NativeInvoke.dll"),
             Path.Combine("..", "..", "bin", "NativeInvoke.dll")
@@ -100,7 +100,7 @@ public static class SourceGeneratorTestHelpers
         // Try to find it in the current directory and subdirectories
         var currentDir = Directory.GetCurrentDirectory();
         var dllFiles = Directory.GetFiles(currentDir, "NativeInvoke.dll", SearchOption.AllDirectories);
-        
+
         if (dllFiles.Length > 0)
         {
             return dllFiles[0];
@@ -118,7 +118,7 @@ public static class SourceGeneratorTestHelpers
     {
         var driver = CSharpGeneratorDriver.Create(generator);
         var runResult = driver.RunGenerators(compilation).GetRunResult();
-        
+
         return runResult.Results
             .SelectMany(r => r.Diagnostics)
             .ToImmutableArray();
@@ -132,13 +132,13 @@ public static class SourceGeneratorTestHelpers
         params string[] expectedIds)
     {
         var actualIds = diagnostics.Select(d => d.Id).ToArray();
-        
+
         foreach (var expectedId in expectedIds)
         {
-            Assert.That(actualIds, Contains.Item(expectedId), 
+            Assert.That(actualIds, Contains.Item(expectedId),
                 $"Expected diagnostic '{expectedId}' was not found. Actual diagnostics: {string.Join(", ", actualIds)}");
         }
-        
+
         Assert.That(actualIds.Length, Is.EqualTo(expectedIds.Length),
             $"Number of diagnostics mismatch. Expected {expectedIds.Length}, got {actualIds.Length}");
     }
@@ -151,7 +151,7 @@ public static class SourceGeneratorTestHelpers
         string hintName)
     {
         var source = generatedSources.FirstOrDefault(s => s.HintName.Contains(hintName));
-        return source?.SourceText.ToString();
+        return source.SourceText.ToString();
     }
 
     /// <summary>
