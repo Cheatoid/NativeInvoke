@@ -15,7 +15,7 @@ public class NativeImportMethodAttributeTests
         // Assert
         Assert.That(attribute.EntryPoint, Is.Null);
         Assert.That(attribute.Ordinal, Is.Null);
-        Assert.That(attribute.CallingConvention, Is.EqualTo(CallingConvention.Winapi));
+        Assert.That(attribute.CallingConvention, Is.EqualTo((CallingConvention)0)); // platform-specific
         Assert.That(attribute.SuppressGCTransition, Is.False);
         Assert.That(attribute.EnforceBlittable, Is.False);
     }

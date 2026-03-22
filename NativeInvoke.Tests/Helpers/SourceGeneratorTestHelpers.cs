@@ -39,6 +39,16 @@ public static class SourceGeneratorTestHelpers
             typeof(Enumerable).Assembly.Location,
             typeof(RuntimeInformation).Assembly.Location,
             typeof(CSharpCompilation).Assembly.Location,
+            // Add specific references for missing types
+            typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute).Assembly.Location,
+            typeof(System.Runtime.InteropServices.CallingConvention).Assembly.Location,
+            typeof(System.Runtime.InteropServices.NativeLibrary).Assembly.Location,
+            // Try to find System.Runtime and System.Runtime.InteropServices in the runtime directory
+            Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.dll"),
+            Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.InteropServices.dll"),
+            // Try to find netstandard.dll in the runtime directory
+            Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "netstandard.dll"),
+            typeof(NativeImportAttribute).Assembly.Location,
             // Add NativeInvoke assembly reference - try to locate it
             GetNativeInvokeAssemblyPath()
         };
@@ -151,7 +161,15 @@ public static class SourceGeneratorTestHelpers
         string hintName)
     {
         var source = generatedSources.FirstOrDefault(s => s.HintName.Contains(hintName));
-        return source.SourceText.ToString();
+        return generatedSources.Any(s => s.HintName.Contains(hintName)) ? source.SourceText?.ToString() : null;
+    }
+
+    /// <summary>
+    /// Gets all available hint names for debugging
+    /// </summary>
+    public static string[] GetAvailableHintNames(ImmutableArray<GeneratedSourceResult> generatedSources)
+    {
+        return generatedSources.Select(s => s.HintName).ToArray();
     }
 
     /// <summary>
@@ -163,12 +181,17 @@ public static class SourceGeneratorTestHelpers
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
-public interface ITestInterface {interfaceDefinition}
+public interface ITestInterface
+{{
+    {interfaceDefinition}
+}}
 
 public static partial class {className}
 {{
     [NativeImport({attributeParams})]
     public static partial ITestInterface TestProperty {{ get; }}
+
+    public static partial ITestInterface TestProperty => throw new System.NotImplementedException();
 }}";
     }
 

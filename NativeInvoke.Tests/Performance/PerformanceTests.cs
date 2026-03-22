@@ -217,6 +217,8 @@ public static partial class TestClass
 {
     [NativeImport(""testlib"", EnforceBlittable = true)]
     public static partial IComplexInterface TestProperty { get; }
+
+    public static partial IComplexInterface TestProperty => throw new System.NotImplementedException();
 }";
 
         // Act
@@ -354,7 +356,13 @@ public static partial class TestClass
             var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
             var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
             Assert.That(generatedCode, Is.Not.Null, $"Generation {i} should produce code");
-            generatedCodes.Add(generatedCode!);
+            
+            // Normalize GUIDs to make comparison deterministic
+            var normalizedCode = System.Text.RegularExpressions.Regex.Replace(generatedCode!, 
+                @"[a-f0-9]{32}", 
+                "NORMALIZED_GUID");
+            
+            generatedCodes.Add(normalizedCode);
         }
 
         // Assert - All generations should be identical

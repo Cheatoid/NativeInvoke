@@ -226,9 +226,10 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       );
     }
 
-    // Blittability check
+    // Blittability check - collect all errors before returning
     //if (nativeImportAttr.EnforceBlittable) // global flag
     {
+      var hasBlittabilityErrors = false;
       foreach (var data in methods)
       {
         if (!data.EnforceBlittable) continue; // Check per-method override (effective value)
@@ -239,12 +240,19 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
             Diagnostics.NonBlittableSignature,
             m.Locations[0],
             $"{iface.Name}.{m.Name}"));
-          return;
+          hasBlittabilityErrors = true;
         }
+      }
+      // Exit early if there are blittability errors
+      if (hasBlittabilityErrors)
+      {
+        return;
       }
     }
 
-    if (methods.Count > 0) // Exit early if we have no methods to process
+    // Check if we have any included methods for generation
+    var includedMethods = methods.Where(static m => m.ShouldInclude).ToArray();
+    if (includedMethods.Length > 0) // Process if we have any included methods
     {
       var source = GenerateSource(containingType, prop, iface, methods.ToArray(), nativeImportAttr);
       var formattedSource = FormatSourceCode(source);

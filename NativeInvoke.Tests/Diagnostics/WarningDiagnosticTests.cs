@@ -266,8 +266,10 @@ public interface ITestInterface
 
 public static partial class TestClass
 {
-    [NativeImport(""testlib"", EnforceBlittable = ""invalid"")]  // Invalid type for boolean property
+    [NativeImport(""testlib"", CallingConvention = (CallingConvention)1234)]  // Invalid member for CallingConvention property
     public static partial ITestInterface TestProperty { get; }
+
+    public static partial ITestInterface TestProperty => throw new System.NotImplementedException();
 }";
 
         // Act
@@ -298,7 +300,7 @@ public interface IAnotherEmptyInterface
 
 public static partial class TestClass
 {
-    [NativeImport(""testlib"", EnforceBlittable = ""invalid"")]
+    [NativeImport(""testlib"", CallingConvention = (CallingConvention)1234)]
     public static partial IEmptyInterface Property1 { get; }
 
     [NativeImport(""anotherlib"", CallingConvention = (CallingConvention)999)]

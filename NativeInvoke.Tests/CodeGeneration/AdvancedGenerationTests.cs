@@ -195,7 +195,7 @@ public static partial class TestClass
         var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
         Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "Add", null, null);
+        GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "custom_add_func", null, null);
         Assert.That(generatedCode!, Does.Contain("\"custom_add_func\""));
         GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "Process", null, null);
         GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Add", "Process" });
@@ -338,8 +338,13 @@ public static partial class TestClass
 
         GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "SuppressedMethod", "NotSuppressedMethod" });
 
-        // Check that one method has suppression and one doesn't
-        var suppressedCount = generatedCode!.Split("[SuppressGCTransition]").Length - 1;
-        Assert.That(suppressedCount, Is.EqualTo(1), "Exactly one method should have GC transition suppression");
+        // Check that exactly one method has suppression by looking at delegate field declarations
+        // Count only the field declarations (not assignments) with [SuppressGCTransition]
+        var suppressedDelegateCount = System.Text.RegularExpressions.Regex.Matches(
+            generatedCode!, 
+            @"readonly\s+delegate\*\s*unmanaged\[SuppressGCTransition\]"
+        ).Count;
+        
+        Assert.That(suppressedDelegateCount, Is.EqualTo(1), "Exactly one method should have GC transition suppression");
     }
 }

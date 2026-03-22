@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace NativeInvoke.Tests.Helpers;
 
 /// <summary>
@@ -14,7 +16,7 @@ public static class GeneratedCodeVerifier
 
         foreach (var pattern in expectedPatterns)
         {
-            Assert.That(generatedCode, Does.Contain(pattern), 
+            Assert.That(generatedCode, Does.Contain(pattern),
                 $"Generated code should contain pattern: {pattern}");
         }
     }
@@ -26,7 +28,7 @@ public static class GeneratedCodeVerifier
     {
         foreach (var pattern in prohibitedPatterns)
         {
-            Assert.That(generatedCode, Does.Not.Contain(pattern), 
+            Assert.That(generatedCode, Does.Not.Contain(pattern),
                 $"Generated code should not contain pattern: {pattern}");
         }
     }
@@ -39,13 +41,20 @@ public static class GeneratedCodeVerifier
         var expectedPatterns = new[]
         {
             $"private sealed unsafe class __Impl_{propertyName}_",
-            $" : {interfaceName}",
             "private static readonly nint __lib;",
             "static __Impl_",
             "NativeLibrary.TryLoad"
         };
 
         VerifyGeneratedCode(generatedCode, expectedPatterns);
+        
+        // Special check for interface implementation that handles global:: qualifier
+        var interfacePattern1 = $" : {interfaceName}";
+        var interfacePattern2 = $" : global::{interfaceName}";
+        
+        var hasInterfacePattern = generatedCode.Contains(interfacePattern1) || generatedCode.Contains(interfacePattern2);
+        Assert.That(hasInterfacePattern, Is.True, 
+            $"Generated code should contain interface implementation pattern: {interfacePattern1} or {interfacePattern2}");
     }
 
     /// <summary>
@@ -56,7 +65,7 @@ public static class GeneratedCodeVerifier
         foreach (var methodName in methodNames)
         {
             var expectedPattern = $"private static readonly delegate* unmanaged";
-            Assert.That(generatedCode, Does.Contain(expectedPattern), 
+            Assert.That(generatedCode, Does.Contain(expectedPattern),
                 $"Should contain function pointer for method: {methodName}");
         }
     }
@@ -68,8 +77,13 @@ public static class GeneratedCodeVerifier
     {
         foreach (var methodName in methodNames)
         {
-            var expectedPattern = $"public {methodName}(";
-            Assert.That(generatedCode, Does.Contain(expectedPattern), 
+            // Use regex to match method signature: public <return_type> <method_name>(<params>)
+            // Handle complex return types including pointers, generics, etc.
+            var pattern = $@"public\s+[\w\s\*\&\<\>\[\]\.,\?\:]+{System.Text.RegularExpressions.Regex.Escape(methodName)}\s*\(";
+            var regex = new System.Text.RegularExpressions.Regex(pattern);
+
+            var found = regex.IsMatch(generatedCode);
+            Assert.That(found, Is.True,
                 $"Should contain implementation for method: {methodName}");
         }
     }
@@ -92,7 +106,7 @@ public static class GeneratedCodeVerifier
 
         foreach (var methodName in methodNames)
         {
-            Assert.That(generatedCode, Does.Contain($"__Ensure_{methodName}_"), 
+            Assert.That(generatedCode, Does.Contain($"__Ensure_{methodName}_"),
                 $"Should contain lazy ensure method for: {methodName}");
         }
     }
@@ -114,7 +128,7 @@ public static class GeneratedCodeVerifier
         // Verify that function pointers are resolved in static constructor
         foreach (var methodName in methodNames)
         {
-            Assert.That(generatedCode, Does.Contain($"__fp_{methodName}"), 
+            Assert.That(generatedCode, Does.Contain($"__fp_{methodName}"),
                 $"Should contain function pointer field for: {methodName}");
         }
     }
@@ -136,7 +150,7 @@ public static class GeneratedCodeVerifier
 
         if (!string.IsNullOrEmpty(expectedConventionString))
         {
-            Assert.That(generatedCode, Does.Contain(expectedConventionString), 
+            Assert.That(generatedCode, Does.Contain(expectedConventionString),
                 $"Should contain calling convention: {expectedConventionString}");
         }
     }
@@ -148,12 +162,12 @@ public static class GeneratedCodeVerifier
     {
         if (expectedSuppression)
         {
-            Assert.That(generatedCode, Does.Contain("[SuppressGCTransition]"), 
+            Assert.That(generatedCode, Does.Contain("[SuppressGCTransition]"),
                 "Should contain GC transition suppression");
         }
         else
         {
-            Assert.That(generatedCode, Does.Not.Contain("[SuppressGCTransition]"), 
+            Assert.That(generatedCode, Does.Not.Contain("[SuppressGCTransition]"),
                 "Should not contain GC transition suppression");
         }
     }
@@ -165,8 +179,8 @@ public static class GeneratedCodeVerifier
     {
         var expectedEntryPoint = $"{prefix ?? ""}{methodName}{suffix ?? ""}";
         var expectedPattern = $"NativeLibrary.TryGetExport(__lib, \"{expectedEntryPoint}\"";
-        
-        Assert.That(generatedCode, Does.Contain(expectedPattern), 
+
+        Assert.That(generatedCode, Does.Contain(expectedPattern),
             $"Should contain entry point resolution for: {expectedEntryPoint}");
     }
 
@@ -175,12 +189,14 @@ public static class GeneratedCodeVerifier
     /// </summary>
     public static void VerifyExcludedMethodStub(string generatedCode, string methodName)
     {
-        var expectedPattern = $"public {methodName}(";
+        // Use regex to match method signature with any return type: public <return_type> <method_name>(<params>)
+        var expectedPattern = $@"public\s+\w+\s+{System.Text.RegularExpressions.Regex.Escape(methodName)}\s*\(";
         var throwPattern = "=> throw null;";
-        
-        Assert.That(generatedCode, Does.Contain(expectedPattern), 
-            $"Should contain method signature for excluded method: {methodName}");
-        Assert.That(generatedCode, Does.Contain(throwPattern), 
-            $"Should contain throw null stub for excluded method: {methodName}");
+
+        var regex = new System.Text.RegularExpressions.Regex(expectedPattern);
+        var found = regex.IsMatch(generatedCode) && generatedCode.Contains(throwPattern);
+
+        Assert.That(found, Is.True,
+            $"Should contain excluded method stub for: {methodName}");
     }
 }

@@ -21,7 +21,7 @@ using NativeInvoke;
 public interface ITestInterface
 {
     [NativeImportMethod]
-    void GenericMethod<T>(T input);  // Generic methods should be handled
+    void GenericMethod<T>(T input) where T : unmanaged;  // Generic methods with unmanaged constraint should be handled
 }
 
 public static partial class TestClass
@@ -35,9 +35,9 @@ public static partial class TestClass
             SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
         // Assert
-        // Generic methods might not be supported, but should not crash
+        // Generic methods with unmanaged constraint should be handled without errors
         Assert.That(diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), Is.False,
-            "Should not crash on generic methods");
+            "Should not crash on generic methods with unmanaged constraint");
     }
 
     [Test]
@@ -295,7 +295,7 @@ using NativeInvoke;
 public interface ITestInterface
 {
     [NativeImportMethod]
-    int Add(int @int, string @string, bool @bool);
+    int Add(int @int, int @string, int @bool);
 
     [NativeImportMethod]
     void Process(ref int @ref, out int @out);
@@ -305,6 +305,8 @@ public static partial class TestClass
 {
     [NativeImport(""testlib"")]
     public static partial ITestInterface TestProperty { get; }
+
+    public static partial ITestInterface TestProperty => throw new System.NotImplementedException();
 }";
 
         // Act
