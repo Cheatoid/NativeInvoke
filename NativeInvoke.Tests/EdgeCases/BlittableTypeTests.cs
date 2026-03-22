@@ -8,13 +8,13 @@ namespace NativeInvoke.Tests.EdgeCases;
 [TestFixture]
 public class BlittableTypeTests
 {
-    private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
+  private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
 
-    [Test]
-    public void GenerateCode_PrimitiveTypes_AreBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_PrimitiveTypes_AreBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -69,20 +69,20 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
-            "All primitive types should be considered blittable");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
+        "All primitive types should be considered blittable");
+  }
 
-    [Test]
-    public void GenerateCode_EnumTypes_AreBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_EnumTypes_AreBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -112,20 +112,20 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
-            "All enum types should be considered blittable");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
+        "All enum types should be considered blittable");
+  }
 
-    [Test]
-    public void GenerateCode_PointerTypes_AreBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_PointerTypes_AreBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -150,20 +150,20 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
-            "All pointer types should be considered blittable");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
+        "All pointer types should be considered blittable");
+  }
 
-    [Test]
-    public void GenerateCode_BlittableStructs_AreBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_BlittableStructs_AreBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -209,20 +209,20 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
-            "Blittable structs should be considered blittable");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
+        "Blittable structs should be considered blittable");
+  }
 
-    [Test]
-    public void GenerateCode_NonBlittableStructs_AreNotBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonBlittableStructs_AreNotBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -262,21 +262,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
-        Assert.That(nonBlittableErrors.Length, Is.EqualTo(3),
-            "All non-blittable structs should generate errors");
-    }
+    // Assert
+    var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
+    Assert.That(nonBlittableErrors.Length, Is.EqualTo(3),
+        "All non-blittable structs should generate errors");
+  }
 
-    [Test]
-    public void GenerateCode_ReferenceTypes_AreNotBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_ReferenceTypes_AreNotBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -301,21 +301,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
-        Assert.That(nonBlittableErrors.Length, Is.EqualTo(4),
-            "All reference types should generate non-blittable errors");
-    }
+    // Assert
+    var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
+    Assert.That(nonBlittableErrors.Length, Is.EqualTo(4),
+        "All reference types should generate non-blittable errors");
+  }
 
-    [Test]
-    public void GenerateCode_MixedBlittableAndNonBlittable_ReportsOnlyNonBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MixedBlittableAndNonBlittable_ReportsOnlyNonBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -347,21 +347,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
-        Assert.That(nonBlittableErrors.Length, Is.EqualTo(2),
-            "Only non-blittable methods should generate errors");
-    }
+    // Assert
+    var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
+    Assert.That(nonBlittableErrors.Length, Is.EqualTo(2),
+        "Only non-blittable methods should generate errors");
+  }
 
-    [Test]
-    public void GenerateCode_BlittableValidationDisabled_AllowsNonBlittable()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_BlittableValidationDisabled_AllowsNonBlittable()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -380,20 +380,20 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
-            "Should not generate blittable errors when validation is disabled");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Id == "NINVK004"), Is.Empty,
+        "Should not generate blittable errors when validation is disabled");
+  }
 
-    [Test]
-    public void GenerateCode_MethodLevelBlittableOverride_OverridesGlobalSetting()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MethodLevelBlittableOverride_OverridesGlobalSetting()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -412,13 +412,13 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
-        Assert.That(nonBlittableErrors.Length, Is.EqualTo(1),
-            "Only method with enforced blittable validation should generate error");
-    }
+    // Assert
+    var nonBlittableErrors = diagnostics.Where(d => d.Id == "NINVK004").ToArray();
+    Assert.That(nonBlittableErrors.Length, Is.EqualTo(1),
+        "Only method with enforced blittable validation should generate error");
+  }
 }

@@ -8,13 +8,13 @@ namespace NativeInvoke.Tests.Diagnostics;
 [TestFixture]
 public class WarningDiagnosticTests
 {
-    private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
+  private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
 
-    [Test]
-    public void GenerateCode_EmptyInterface_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_EmptyInterface_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -29,19 +29,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithOnlyExcludedMethods_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithOnlyExcludedMethods_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -60,19 +60,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithDefaultMethods_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithDefaultMethods_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -91,19 +91,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithStaticMethods_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithStaticMethods_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -121,19 +121,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithProperties_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithProperties_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -151,19 +151,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithEvents_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithEvents_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System;
 using System.Runtime.InteropServices;
 using NativeInvoke;
@@ -180,19 +180,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithValidAndInvalidMembers_GeneratesCodeWithoutWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithValidAndInvalidMembers_GeneratesCodeWithoutWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System;
 using System.Runtime.InteropServices;
 using NativeInvoke;
@@ -213,20 +213,20 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Id == "NINVK005"), Is.Empty,
-            "Should not report empty interface warning when there are valid methods");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Id == "NINVK005"), Is.Empty,
+        "Should not report empty interface warning when there are valid methods");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithOnlyExplicitOnlyMethods_ReportsEmptyInterfaceWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithOnlyExplicitOnlyMethods_ReportsEmptyInterfaceWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -242,19 +242,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
+  }
 
-    [Test]
-    public void GenerateCode_InvalidAttributeArgument_ReportsInvalidAttributeArgumentWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InvalidAttributeArgument_ReportsInvalidAttributeArgumentWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -272,19 +272,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty => throw new System.NotImplementedException();
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK007");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK007");
+  }
 
-    [Test]
-    public void GenerateCode_MultipleWarnings_ReportsAllWarnings()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MultipleWarnings_ReportsAllWarnings()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -307,17 +307,17 @@ public static partial class TestClass
     public static partial IAnotherEmptyInterface Property2 { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        var warningDiagnostics = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning).ToArray();
-        var warningIds = warningDiagnostics.Select(d => d.Id).ToArray();
+    // Assert
+    var warningDiagnostics = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning).ToArray();
+    var warningIds = warningDiagnostics.Select(d => d.Id).ToArray();
 
-        Assert.That(warningIds.Count(id => id == "NINVK005"), Is.EqualTo(2),
-            "Should have 2 empty interface warnings");
-        Assert.That(warningIds.Count(id => id == "NINVK007"), Is.EqualTo(2),
-            "Should have 2 invalid attribute argument warnings");
-    }
+    Assert.That(warningIds.Count(id => id == "NINVK005"), Is.EqualTo(2),
+        "Should have 2 empty interface warnings");
+    Assert.That(warningIds.Count(id => id == "NINVK007"), Is.EqualTo(2),
+        "Should have 2 invalid attribute argument warnings");
+  }
 }

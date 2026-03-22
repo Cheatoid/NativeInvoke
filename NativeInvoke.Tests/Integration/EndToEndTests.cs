@@ -8,13 +8,13 @@ namespace NativeInvoke.Tests.Integration;
 [TestFixture]
 public class EndToEndTests
 {
-    private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
+  private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
 
-    [Test]
-    public void GenerateCode_CompleteRealWorldScenario_GeneratesCorrectly()
-    {
-        // Arrange - Simulate a real-world scenario with complex interface
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_CompleteRealWorldScenario_GeneratesCorrectly()
+  {
+    // Arrange - Simulate a real-world scenario with complex interface
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -47,36 +47,36 @@ public static partial class NativeMethods
     public static partial IKernel32 Kernel32 { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.Kernel32");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.Kernel32");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!, "IKernel32", "Kernel32");
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-            new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
+    GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!, "IKernel32", "Kernel32");
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
+        new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
 
-        // Verify custom entry points
-        Assert.That(generatedCode!, Does.Contain("\"GetTickCount\""));
-        Assert.That(generatedCode!, Does.Contain("\"GetCurrentProcessId\""));
-        Assert.That(generatedCode!, Does.Contain("\"Sleep\""));
-        Assert.That(generatedCode!, Does.Contain("\"GetTickCount64\""));
+    // Verify custom entry points
+    Assert.That(generatedCode!, Does.Contain("\"GetTickCount\""));
+    Assert.That(generatedCode!, Does.Contain("\"GetCurrentProcessId\""));
+    Assert.That(generatedCode!, Does.Contain("\"Sleep\""));
+    Assert.That(generatedCode!, Does.Contain("\"GetTickCount64\""));
 
-        // Verify calling convention override
-        Assert.That(generatedCode!, Does.Contain("[Stdcall]"));
+    // Verify calling convention override
+    Assert.That(generatedCode!, Does.Contain("[Stdcall]"));
 
-        // Verify eager loading
-        GeneratedCodeVerifier.VerifyEagerLoading(generatedCode!,
-            new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
-    }
+    // Verify eager loading
+    GeneratedCodeVerifier.VerifyEagerLoading(generatedCode!,
+        new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
+  }
 
-    [Test]
-    public void GenerateCode_MultipleLibrariesWithDifferentSettings_GeneratesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MultipleLibrariesWithDifferentSettings_GeneratesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -113,35 +113,35 @@ public static partial class NativeLibs
     public static partial ILib2 Lib2 { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        Assert.That(generatedSources.Length, Is.EqualTo(2), "Should generate two source files");
+    // Assert
+    Assert.That(generatedSources.Length, Is.EqualTo(2), "Should generate two source files");
 
-        var lib1Code = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeLibs.Lib1");
-        var lib2Code = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeLibs.Lib2");
+    var lib1Code = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeLibs.Lib1");
+    var lib2Code = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeLibs.Lib2");
 
-        Assert.That(lib1Code, Is.Not.Null);
-        Assert.That(lib2Code, Is.Not.Null);
+    Assert.That(lib1Code, Is.Not.Null);
+    Assert.That(lib2Code, Is.Not.Null);
 
-        // Verify Lib1 (lazy loading)
-        GeneratedCodeVerifier.VerifyLazyLoading(lib1Code!, new[] { "Add", "Process" });
-        GeneratedCodeVerifier.VerifyCallingConvention(lib1Code!, CallingConvention.Cdecl);
-        GeneratedCodeVerifier.VerifyEntryPointResolution(lib1Code!, "Add", "lib1_", null);
-        GeneratedCodeVerifier.VerifyEntryPointResolution(lib1Code!, "Process", "lib1_", null);
+    // Verify Lib1 (lazy loading)
+    GeneratedCodeVerifier.VerifyLazyLoading(lib1Code!, new[] { "Add", "Process" });
+    GeneratedCodeVerifier.VerifyCallingConvention(lib1Code!, CallingConvention.Cdecl);
+    GeneratedCodeVerifier.VerifyEntryPointResolution(lib1Code!, "Add", "lib1_", null);
+    GeneratedCodeVerifier.VerifyEntryPointResolution(lib1Code!, "Process", "lib1_", null);
 
-        // Verify Lib2 (eager loading)
-        GeneratedCodeVerifier.VerifyEagerLoading(lib2Code!, new[] { "Multiply", "OrdinalFunction" });
-        GeneratedCodeVerifier.VerifyCallingConvention(lib2Code!, CallingConvention.StdCall);
-        Assert.That(lib2Code!, Does.Contain("\"custom_multiply\""));
-    }
+    // Verify Lib2 (eager loading)
+    GeneratedCodeVerifier.VerifyEagerLoading(lib2Code!, new[] { "Multiply", "OrdinalFunction" });
+    GeneratedCodeVerifier.VerifyCallingConvention(lib2Code!, CallingConvention.StdCall);
+    Assert.That(lib2Code!, Does.Contain("\"custom_multiply\""));
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceInheritanceWithComplexHierarchy_GeneratesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceInheritanceWithComplexHierarchy_GeneratesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -177,31 +177,31 @@ public static partial class NativeMethods
     public static partial IFinalInterface TestLib { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.TestLib");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.TestLib");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-            new[] { "BaseMethod1", "BaseMethod2", "IntermediateMethod", "IntermediateMethodCustom", "FinalMethod" });
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
+        new[] { "BaseMethod1", "BaseMethod2", "IntermediateMethod", "IntermediateMethodCustom", "FinalMethod" });
 
-        // Verify custom entry points
-        Assert.That(generatedCode!, Does.Contain("\"base_custom\""));
-        Assert.That(generatedCode!, Does.Contain("\"intermediate_custom\""));
+    // Verify custom entry points
+    Assert.That(generatedCode!, Does.Contain("\"base_custom\""));
+    Assert.That(generatedCode!, Does.Contain("\"intermediate_custom\""));
 
-        // Verify prefix for default entry points
-        GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "BaseMethod1", "test_", null);
-        GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "IntermediateMethod", "test_", null);
-        GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "FinalMethod", "test_", null);
-    }
+    // Verify prefix for default entry points
+    GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "BaseMethod1", "test_", null);
+    GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "IntermediateMethod", "test_", null);
+    GeneratedCodeVerifier.VerifyEntryPointResolution(generatedCode!, "FinalMethod", "test_", null);
+  }
 
-    [Test]
-    public void GenerateCode_MixedExplicitAndImplicitMethods_GeneratesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MixedExplicitAndImplicitMethods_GeneratesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -227,26 +227,26 @@ public static partial class NativeMethods
     public static partial IMixedInterface TestLib { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.TestLib");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.TestLib");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-            new[] { "ExplicitMethod1", "ExplicitMethod2", "ImplicitMethod1", "ImplicitMethod2" });
-        GeneratedCodeVerifier.VerifyExcludedMethodStub(generatedCode!, "ExcludedMethod");
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
+        new[] { "ExplicitMethod1", "ExplicitMethod2", "ImplicitMethod1", "ImplicitMethod2" });
+    GeneratedCodeVerifier.VerifyExcludedMethodStub(generatedCode!, "ExcludedMethod");
 
-        // Verify custom entry point
-        Assert.That(generatedCode!, Does.Contain("\"custom_entry\""));
-    }
+    // Verify custom entry point
+    Assert.That(generatedCode!, Does.Contain("\"custom_entry\""));
+  }
 
-    [Test]
-    public void GenerateCode_AllCallingConventions_GeneratesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_AllCallingConventions_GeneratesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -274,32 +274,32 @@ public static partial class NativeMethods
     public static partial ICallingConventionInterface TestLib { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.TestLib");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "NativeMethods.TestLib");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-            new[] { "WinApiMethod", "CdeclMethod", "StdCallMethod", "ThisCallMethod", "FastCallMethod" });
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
+        new[] { "WinApiMethod", "CdeclMethod", "StdCallMethod", "ThisCallMethod", "FastCallMethod" });
 
-        // Verify calling conventions
-        Assert.That(generatedCode!, Does.Contain("[Cdecl]"));
-        Assert.That(generatedCode!, Does.Contain("[Stdcall]"));
-        Assert.That(generatedCode!, Does.Contain("[Thiscall]"));
-        Assert.That(generatedCode!, Does.Contain("[Fastcall]"));
+    // Verify calling conventions
+    Assert.That(generatedCode!, Does.Contain("[Cdecl]"));
+    Assert.That(generatedCode!, Does.Contain("[Stdcall]"));
+    Assert.That(generatedCode!, Does.Contain("[Thiscall]"));
+    Assert.That(generatedCode!, Does.Contain("[Fastcall]"));
 
-        // WinApi should not have explicit modifier (platform default)
-        var winApiMethodCount = generatedCode!.Split("[Winapi]").Length - 1;
-        Assert.That(winApiMethodCount, Is.EqualTo(0), "WinApi should not have explicit calling convention modifier");
-    }
+    // WinApi should not have explicit modifier (platform default)
+    var winApiMethodCount = generatedCode!.Split("[Winapi]").Length - 1;
+    Assert.That(winApiMethodCount, Is.EqualTo(0), "WinApi should not have explicit calling convention modifier");
+  }
 
-    [Test]
-    public void GenerateCode_ComplexNestedTypeStructure_GeneratesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_ComplexNestedTypeStructure_GeneratesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -324,18 +324,18 @@ namespace OuterNamespace.InnerNamespace
     }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "InnerClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "InnerClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!,
-            "OuterNamespace.InnerNamespace.ITestInterface", "TestProperty");
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "TestMethod" });
+    GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!,
+        "OuterNamespace.InnerNamespace.ITestInterface", "TestProperty");
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "TestMethod" });
 
-        // Verify namespace structure
-        Assert.That(generatedCode!, Does.Contain("namespace OuterNamespace.InnerNamespace"));
-    }
+    // Verify namespace structure
+    Assert.That(generatedCode!, Does.Contain("namespace OuterNamespace.InnerNamespace"));
+  }
 }

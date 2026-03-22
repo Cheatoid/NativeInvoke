@@ -8,13 +8,13 @@ namespace NativeInvoke.Tests.Diagnostics;
 [TestFixture]
 public class ErrorDiagnosticTests
 {
-    private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
+  private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
 
-    [Test]
-    public void GenerateCode_NonPartialType_ReportsTypeMustBePartialError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonPartialType_ReportsTypeMustBePartialError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -30,19 +30,19 @@ public static class TestClass  // Not partial
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK001");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK001");
+  }
 
-    [Test]
-    public void GenerateCode_NonStaticProperty_ReportsPropertyMustBeStaticPartialError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonStaticProperty_ReportsPropertyMustBeStaticPartialError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -58,19 +58,19 @@ public static partial class TestClass
     public partial ITestInterface TestProperty { get; }  // Not static
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK002");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK002");
+  }
 
-    [Test]
-    public void GenerateCode_NonPartialProperty_ReportsPropertyMustBeStaticPartialError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonPartialProperty_ReportsPropertyMustBeStaticPartialError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -86,19 +86,19 @@ public static partial class TestClass
     public static ITestInterface TestProperty { get; }  // Not partial
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK002");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK002");
+  }
 
-    [Test]
-    public void GenerateCode_NonInterfacePropertyType_ReportsPropertyTypeMustBeInterfaceError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonInterfacePropertyType_ReportsPropertyTypeMustBeInterfaceError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -113,19 +113,19 @@ public static partial class TestClass
     public static partial TestClassType TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK003");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK003");
+  }
 
-    [Test]
-    public void GenerateCode_MissingLibraryName_ReportsMissingLibraryNameError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MissingLibraryName_ReportsMissingLibraryNameError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -141,19 +141,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK006");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK006");
+  }
 
-    [Test]
-    public void GenerateCode_EmptyLibraryName_ReportsMissingLibraryNameError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_EmptyLibraryName_ReportsMissingLibraryNameError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -169,19 +169,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK006");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK006");
+  }
 
-    [Test]
-    public void GenerateCode_NonBlittableType_ReportsNonBlittableSignatureError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonBlittableType_ReportsNonBlittableSignatureError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -197,19 +197,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
+  }
 
-    [Test]
-    public void GenerateCode_NonBlittableReturnType_ReportsNonBlittableSignatureError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonBlittableReturnType_ReportsNonBlittableSignatureError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -225,19 +225,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
+  }
 
-    [Test]
-    public void GenerateCode_NonBlittableStruct_ReportsNonBlittableSignatureError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NonBlittableStruct_ReportsNonBlittableSignatureError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -258,19 +258,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
+  }
 
-    [Test]
-    public void GenerateCode_InvalidAttributeArgument_ReportsInvalidAttributeArgumentWarning()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InvalidAttributeArgument_ReportsInvalidAttributeArgumentWarning()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -286,19 +286,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK007");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK007");
+  }
 
-    [Test]
-    public void GenerateCode_MultipleErrors_ReportsAllErrors()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MultipleErrors_ReportsAllErrors()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -314,21 +314,21 @@ public static class TestClass  // Not partial
     public partial ITestInterface TestProperty { get; }  // Not static
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        // Due to early returns in the generator, only the first error (class not partial) is reported
-        // The other errors are not checked because the generator returns after the first validation failure
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK001");
-    }
+    // Assert
+    // Due to early returns in the generator, only the first error (class not partial) is reported
+    // The other errors are not checked because the generator returns after the first validation failure
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK001");
+  }
 
-    [Test]
-    public void GenerateCode_MethodLevelNonBlittableType_ReportsNonBlittableSignatureError()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_MethodLevelNonBlittableType_ReportsNonBlittableSignatureError()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -344,19 +344,19 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
-    }
+    // Assert
+    SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
+  }
 
-    [Test]
-    public void GenerateCode_BlittableDisabled_GeneratesSuccessfully()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_BlittableDisabled_GeneratesSuccessfully()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -372,12 +372,12 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        Assert.That(diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error), Is.Empty,
-            "Should not have any error diagnostics when blittable validation is disabled");
-    }
+    // Assert
+    Assert.That(diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error), Is.Empty,
+        "Should not have any error diagnostics when blittable validation is disabled");
+  }
 }

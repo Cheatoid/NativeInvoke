@@ -8,13 +8,13 @@ namespace NativeInvoke.Tests.EdgeCases;
 [TestFixture]
 public class EdgeCaseTests
 {
-    private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
+  private static readonly IIncrementalGenerator Generator = new NativeImportGenerator();
 
-    [Test]
-    public void GenerateCode_InterfaceWithGenericMethods_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithGenericMethods_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -30,21 +30,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-            SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+    // Act
+    var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
+        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
-        // Assert
-        // Generic methods with unmanaged constraint should be handled without errors
-        Assert.That(diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), Is.False,
-            "Should not crash on generic methods with unmanaged constraint");
-    }
+    // Assert
+    // Generic methods with unmanaged constraint should be handled without errors
+    Assert.That(diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), Is.False,
+        "Should not crash on generic methods with unmanaged constraint");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithOverloadedMethods_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithOverloadedMethods_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -66,26 +66,26 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        // Should generate all three overloaded methods with unique names
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Add" });
+    // Should generate all three overloaded methods with unique names
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Add" });
 
-        // Check that there are multiple function pointer fields (one for each overload)
-        var functionPointerCount = generatedCode!.Split("private static readonly delegate* unmanaged").Length - 1;
-        Assert.That(functionPointerCount, Is.EqualTo(3), "Should generate 3 function pointers for overloaded methods");
-    }
+    // Check that there are multiple function pointer fields (one for each overload)
+    var functionPointerCount = generatedCode!.Split("private static readonly delegate* unmanaged").Length - 1;
+    Assert.That(functionPointerCount, Is.EqualTo(3), "Should generate 3 function pointers for overloaded methods");
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithRefParameters_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithRefParameters_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -107,21 +107,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "RefMethod", "OutMethod", "InMethod" });
-    }
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "RefMethod", "OutMethod", "InMethod" });
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithPointerParameters_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithPointerParameters_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -140,21 +140,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "PointerMethod", "VoidPointerMethod" });
-    }
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "PointerMethod", "VoidPointerMethod" });
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithEnumParameters_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithEnumParameters_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -179,21 +179,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "EnumMethod", "ReturnEnumMethod" });
-    }
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "EnumMethod", "ReturnEnumMethod" });
+  }
 
-    [Test]
-    public void GenerateCode_InterfaceWithBlittableStructs_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_InterfaceWithBlittableStructs_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -220,21 +220,21 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "StructMethod", "ReturnStructMethod" });
-    }
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "StructMethod", "ReturnStructMethod" });
+  }
 
-    [Test]
-    public void GenerateCode_DiamondInheritance_HandlesDuplicateMethodsCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_DiamondInheritance_HandlesDuplicateMethodsCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -268,27 +268,27 @@ public static partial class TestClass
     public static partial IDerived TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        // Should have unique methods (CommonMethod should appear only once)
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-            new[] { "CommonMethod", "Base1Method", "Base2Method", "DerivedMethod" });
+    // Should have unique methods (CommonMethod should appear only once)
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
+        new[] { "CommonMethod", "Base1Method", "Base2Method", "DerivedMethod" });
 
-        // Verify no duplicate implementations
-        var commonMethodCount = generatedCode!.Split("public void CommonMethod(").Length - 1;
-        Assert.That(commonMethodCount, Is.EqualTo(1), "CommonMethod should appear only once");
-    }
+    // Verify no duplicate implementations
+    var commonMethodCount = generatedCode!.Split("public void CommonMethod(").Length - 1;
+    Assert.That(commonMethodCount, Is.EqualTo(1), "CommonMethod should appear only once");
+  }
 
-    [Test]
-    public void GenerateCode_KeywordParameterNames_EscapesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_KeywordParameterNames_EscapesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -309,28 +309,28 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty => throw new System.NotImplementedException();
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Add", "Process" });
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Add", "Process" });
 
-        // Verify parameter names are properly escaped
-        Assert.That(generatedCode!, Does.Contain("@int"));
-        Assert.That(generatedCode!, Does.Contain("@string"));
-        Assert.That(generatedCode!, Does.Contain("@bool"));
-        Assert.That(generatedCode!, Does.Contain("@ref"));
-        Assert.That(generatedCode!, Does.Contain("@out"));
-    }
+    // Verify parameter names are properly escaped
+    Assert.That(generatedCode!, Does.Contain("@int"));
+    Assert.That(generatedCode!, Does.Contain("@string"));
+    Assert.That(generatedCode!, Does.Contain("@bool"));
+    Assert.That(generatedCode!, Does.Contain("@ref"));
+    Assert.That(generatedCode!, Does.Contain("@out"));
+  }
 
-    [Test]
-    public void GenerateCode_LongMethodNames_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_LongMethodNames_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -349,23 +349,23 @@ public static partial class TestClass
     public static partial ITestInterface TestProperty { get; }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "TestClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-            new[] { "VeryLongMethodNameThatExceedsNormalLengthAndMightCauseIssues",
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
+        new[] { "VeryLongMethodNameThatExceedsNormalLengthAndMightCauseIssues",
                    "AnotherVeryLongMethodNameWithLotsOfCharacters" });
-    }
+  }
 
-    [Test]
-    public void GenerateCode_SpecialCharactersInNames_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_SpecialCharactersInNames_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -381,22 +381,22 @@ public static partial class Test_Class  // Contains underscore
     public static partial ITest_Interface Test_Property { get; }  // Contains underscore
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "Test_Class.Test_Property");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "Test_Class.Test_Property");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!, "ITest_Interface", "Test_Property");
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Test_Method" });
-    }
+    GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!, "ITest_Interface", "Test_Property");
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "Test_Method" });
+  }
 
-    [Test]
-    public void GenerateCode_NestedInterfaces_HandlesCorrectly()
-    {
-        // Arrange
-        var sourceCode = @"
+  [Test]
+  public void GenerateCode_NestedInterfaces_HandlesCorrectly()
+  {
+    // Arrange
+    var sourceCode = @"
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
@@ -415,13 +415,13 @@ public static partial class OuterClass
     }
 }";
 
-        // Act
-        var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
+    // Act
+    var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
 
-        // Assert
-        var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "InnerClass.TestProperty");
-        Assert.That(generatedCode, Is.Not.Null);
+    // Assert
+    var generatedCode = SourceGeneratorTestHelpers.GetGeneratedSource(generatedSources, "InnerClass.TestProperty");
+    Assert.That(generatedCode, Is.Not.Null);
 
-        GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "NestedMethod" });
-    }
+    GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "NestedMethod" });
+  }
 }
