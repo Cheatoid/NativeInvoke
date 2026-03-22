@@ -61,28 +61,40 @@ namespace ConsumerTest
     // This test runs the actual LocalNuGet build process and verifies that
     // NativeInvoke.dll is not present in the output folder, proving it's compile-time only
     
-    // Try multiple paths to find the Example directory
+    // Try multiple paths to find the Example directory (cross-platform compatible)
     var possiblePaths = new[]
     {
+      // From test directory, go up to repository root and find Example
       Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "..", "Example"),
       Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "Example"),
+      // From app domain base directory, go up to repository root and find Example
       Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Example"),
       Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Example"),
-      @"X:\Projects\NativeInvoke\Example"
+      // Try current working directory (common in CI environments)
+      Path.Combine(Directory.GetCurrentDirectory(), "..", "Example"),
+      Path.Combine(Directory.GetCurrentDirectory(), "Example"),
+      // Try repository root + Example (most reliable for CI)
+      Path.Combine(GetRepositoryRoot(), "Example")
     };
     
     string? exampleFullPath = null;
     foreach (var path in possiblePaths)
     {
       var fullPath = Path.GetFullPath(path);
+      Console.WriteLine($"Checking path: {fullPath}");
       if (Directory.Exists(fullPath))
       {
         exampleFullPath = fullPath;
+        Console.WriteLine($"✅ Found Example directory at: {exampleFullPath}");
         break;
       }
     }
     
-    Assert.That(exampleFullPath, Is.Not.Null, $"Example directory not found. Tried: {string.Join(", ", possiblePaths)}");
+    Assert.That(exampleFullPath, Is.Not.Null, 
+      $"Example directory not found. Tried: {string.Join(", ", possiblePaths.Select(Path.GetFullPath))}" + 
+      $"\nCurrent directory: {Directory.GetCurrentDirectory()}" +
+      $"\nTest directory: {TestContext.CurrentContext.TestDirectory}" +
+      $"\nApp domain base: {AppDomain.CurrentDomain.BaseDirectory}");
     
     // Clean the build output first
     var binPath = Path.Combine(exampleFullPath, "bin");
@@ -247,6 +259,26 @@ namespace ComplexTest
 
     Assert.That(methods.Length, Is.GreaterThanOrEqualTo(4),
       "Should implement all interface methods");
+  }
+
+  private static string GetRepositoryRoot()
+  {
+    var currentDir = Directory.GetCurrentDirectory();
+    
+    // Look for .git directory to find repository root
+    var dir = new DirectoryInfo(currentDir);
+    while (dir != null)
+    {
+      if (Directory.Exists(Path.Combine(dir.FullName, ".git")))
+      {
+        return dir.FullName;
+      }
+      dir = dir.Parent;
+    }
+    
+    // Fallback: try going up from current directory
+    var fallbackRoot = Path.GetFullPath(Path.Combine(currentDir, "..", ".."));
+    return fallbackRoot;
   }
 
   private static Assembly CompileAsConsumer(string sourceCode)
