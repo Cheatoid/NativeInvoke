@@ -21,3 +21,12 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 NINVK005 | NativeInvoke | Warning | Interface has no valid methods to generate
 NINVK006 | NativeInvoke | Error | Missing library name in [NativeImport] attribute
+
+
+## 1.3.6
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+NINVK007 | NativeInvoke | Warning | Invalid attribute argument type/value

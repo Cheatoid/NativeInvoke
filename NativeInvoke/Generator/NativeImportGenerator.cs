@@ -9,6 +9,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
 
   static NativeImportGenerator()
   {
+    // NOTE: This set is unnecessary (but just in case)...
     ContextualKeywordsThatNeedEscaping = new HashSet<string>(StringComparer.Ordinal)
     {
       // Query keywords
@@ -18,7 +19,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       "async", "await",
       // Other contextual keywords
       "when", "yield", "partial", "file", "required", "init", "set", "get", "add", "remove",
-      "nameof", "var", "dynamic"
+      "nameof", "var", "dynamic", "field"
     };
   }
 
@@ -38,8 +39,8 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       var (compilation, propDecls) = source;
       if (propDecls.IsDefaultOrEmpty) return;
 
-      var nativeImportAttr = compilation.GetTypeByMetadataName(typeof(NativeInvoke.NativeImportAttribute).FullName!);
-      var nativeImportMethodAttr = compilation.GetTypeByMetadataName(typeof(NativeInvoke.NativeImportMethodAttribute).FullName!);
+      var nativeImportAttr = compilation.GetTypeByMetadataName(typeof(NativeImportAttribute).FullName!);
+      var nativeImportMethodAttr = compilation.GetTypeByMetadataName(typeof(NativeImportMethodAttribute).FullName!);
       if (nativeImportAttr is null || nativeImportMethodAttr is null) return; // Ensure we have our attributes
 
       foreach (var propDecl in propDecls)
@@ -123,30 +124,14 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     NativeImportAttribute nativeImportAttr;
     {
       var temp = new NativeImportAttribute(string.Empty); // Temporary instance to get the default values
-      var enforceBlittable = (bool)(pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.EnforceBlittable))
-        .Value.Value ?? temp.EnforceBlittable);
-      var explicitOnly = (bool)(pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.ExplicitOnly))
-        .Value.Value ?? temp.ExplicitOnly);
-      var inherited = (bool)(pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.Inherited))
-        .Value.Value ?? temp.Inherited);
-      var lazy = (bool)(pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.Lazy))
-        .Value.Value ?? temp.Lazy);
-      var defaultCc = (CallingConvention)(pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.CallingConvention))
-        .Value.Value ?? temp.CallingConvention); // Fallback to platform-default
-      var suppressGCTransition = (bool)(pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SuppressGCTransition))
-        .Value.Value ?? temp.SuppressGCTransition);
-      var symbolPrefix = (pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SymbolPrefix))
-        .Value.Value ?? temp.SymbolPrefix) as string;
-      var symbolSuffix = (pAttr.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportAttribute.SymbolSuffix))
-        .Value.Value ?? temp.SymbolSuffix) as string;
+      var enforceBlittable = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.EnforceBlittable), spc, prop.Locations[0], temp.EnforceBlittable);
+      var explicitOnly = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.ExplicitOnly), spc, prop.Locations[0], temp.ExplicitOnly);
+      var inherited = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.Inherited), spc, prop.Locations[0], temp.Inherited);
+      var lazy = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.Lazy), spc, prop.Locations[0], temp.Lazy);
+      var defaultCc = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.CallingConvention), spc, prop.Locations[0], temp.CallingConvention);
+      var suppressGCTransition = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.SuppressGCTransition), spc, prop.Locations[0], temp.SuppressGCTransition);
+      var symbolPrefix = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.SymbolPrefix), spc, prop.Locations[0], temp.SymbolPrefix);
+      var symbolSuffix = SafeGetNamedArgument(pAttr, nameof(NativeImportAttribute.SymbolSuffix), spc, prop.Locations[0], temp.SymbolSuffix);
       nativeImportAttr = new NativeImportAttribute(libraryName!)
       {
         EnforceBlittable = enforceBlittable,
@@ -205,9 +190,9 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
           }
           else
           {
-            // Treat both null and empty/whitespace strings as explicit exclusion
+            // Treat both null and empty strings as explicit exclusion
             entryPoint = argValue as string; // may be null
-            shouldInclude = !string.IsNullOrWhiteSpace(entryPoint);
+            shouldInclude = !string.IsNullOrEmpty(entryPoint);
           }
         }
       }
@@ -219,15 +204,10 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
       // Reconstruct the method attribute and create method data
       var name = $"{method.Name}_{Guid.NewGuid():N}"; // Append a Guid to prevent name collisions for overloaded functions
       entryPoint = shouldInclude ? ResolveMethodEntryPoint(entryPoint, method.Name, nativeImportAttr.SymbolPrefix, nativeImportAttr.SymbolSuffix) : string.Empty;
-      var cc = (mAttr?.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.CallingConvention))
-        .Value.Value ?? null) as CallingConvention?;
-      var suppressGCTransition = (mAttr?.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.SuppressGCTransition))
-        .Value.Value ?? null) as bool?;
-      var enforceBlittable = (mAttr?.NamedArguments
-        .FirstOrDefault(static kv => kv.Key == nameof(NativeImportMethodAttribute.EnforceBlittable))
-        .Value.Value ?? null) as bool?;
+      // Reminder: nativeImportAttr.* are the fallback defaults (resolved later), but here we use nullable to mean "not specified"
+      var cc = SafeGetNamedArgument<CallingConvention?>(mAttr, nameof(NativeImportMethodAttribute.CallingConvention), spc, method.Locations[0], null);
+      var suppressGCTransition = SafeGetNamedArgument<bool?>(mAttr, nameof(NativeImportMethodAttribute.SuppressGCTransition), spc, method.Locations[0], null);
+      var enforceBlittable = SafeGetNamedArgument<bool?>(mAttr, nameof(NativeImportMethodAttribute.EnforceBlittable), spc, method.Locations[0], null);
       var attr = ordinal.HasValue
         ? new NativeImportMethodAttribute(ordinal.Value)
         : new NativeImportMethodAttribute(entryPoint);
@@ -680,6 +660,90 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     // Check for contextual keywords that need escaping in certain contexts
     // These are keywords that are only reserved in specific contexts
     return ContextualKeywordsThatNeedEscaping.Contains(identifier);
+  }
+
+  private static string GetFriendlyTypeName(Type type)
+  {
+    // Nullable`1 -> T?
+    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+    {
+      var underlyingType = type.GetGenericArguments()[0];
+      return $"{underlyingType.Name}?";
+    }
+    return type.Name;
+  }
+
+  private static T? SafeGetNamedArgument<T>(AttributeData? attribute, string parameterName, SourceProductionContext context, Location location, T? defaultValue = default)
+  {
+    // Safe type casting with validation
+    if (attribute?.NamedArguments == null) return defaultValue;
+
+    var namedArg = attribute.NamedArguments.FirstOrDefault(kv => kv.Key == parameterName);
+    if (namedArg.Key == null) return defaultValue;
+
+    if (namedArg.Value.Value == null) return defaultValue;
+
+    // Handle string
+    if (typeof(T) == typeof(string) && namedArg.Value.Value is string stringValue)
+    {
+      return (T?)(object?)stringValue;
+    }
+    // Handle boolean
+    if (typeof(T) == typeof(bool) && namedArg.Value.Value is bool boolValue)
+    {
+      return (T?)(object?)boolValue;
+    }
+    // Handle nullable boolean
+    if (typeof(T) == typeof(bool?) && namedArg.Value.Value is bool boolValueNullable)
+    {
+      return (T?)(object?)boolValueNullable;
+    }
+    // Handle primitive types (int, uint, long, ulong, short, ushort, byte, sbyte, float, double, decimal)
+    if (typeof(T).IsPrimitive && namedArg.Value.Value.GetType().IsPrimitive)
+    {
+      return (T?)(object?)namedArg.Value.Value;
+    }
+    // Handle nullable primitive types
+    if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>) &&
+        typeof(T).GetGenericArguments()[0].IsPrimitive && namedArg.Value.Value.GetType().IsPrimitive)
+    {
+      return (T?)(object?)namedArg.Value.Value;
+    }
+    // Handle enum types (including CallingConvention)
+    if (typeof(T).IsEnum && namedArg.Value.Value.GetType().IsEnum)
+    {
+      return (T?)(object?)namedArg.Value.Value;
+    }
+    // Handle nullable enum types
+    if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>) &&
+        typeof(T).GetGenericArguments()[0].IsEnum && namedArg.Value.Value.GetType().IsEnum)
+    {
+      return (T?)(object?)namedArg.Value.Value;
+    }
+    // Handle enum from integer conversion
+    if (typeof(T).IsEnum && namedArg.Value.Value is int enumIntValue && Enum.IsDefined(typeof(T), enumIntValue))
+    {
+      return (T?)Enum.ToObject(typeof(T), enumIntValue);
+    }
+    // Handle nullable enum from integer conversion
+    if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>) &&
+        typeof(T).GetGenericArguments()[0].IsEnum && namedArg.Value.Value is int enumIntValueNullable &&
+        Enum.IsDefined(typeof(T).GetGenericArguments()[0], enumIntValueNullable))
+    {
+      var enumType = typeof(T).GetGenericArguments()[0];
+      var enumValue = Enum.ToObject(enumType, enumIntValueNullable);
+      return (T?)(object?)enumValue;
+    }
+
+    // Report warning for invalid type
+    var expectedTypeName = GetFriendlyTypeName(typeof(T));
+    context.ReportDiagnostic(Diagnostic.Create(
+      Diagnostics.InvalidAttributeArgument,
+      location,
+      parameterName,
+      expectedTypeName));
+
+    return defaultValue;
   }
 }
 

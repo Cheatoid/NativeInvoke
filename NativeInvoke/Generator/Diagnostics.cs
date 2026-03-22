@@ -49,4 +49,12 @@ internal static partial class Diagnostics
     category: "NativeInvoke",
     defaultSeverity: DiagnosticSeverity.Error,
     isEnabledByDefault: true);
+
+  public static readonly DiagnosticDescriptor InvalidAttributeArgument = new(
+    id: "NINVK007",
+    title: "Invalid attribute argument",
+    messageFormat: "Invalid value for '{0}' parameter in [NativeImport] attribute (expected {1}, but received an incompatible value)",
+    category: "NativeInvoke",
+    defaultSeverity: DiagnosticSeverity.Warning,
+    isEnabledByDefault: true);
 }

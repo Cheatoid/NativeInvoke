@@ -355,7 +355,7 @@ public sealed class NativeImportMethodAttribute : Attribute
   /// with a custom entry point name.
   /// </summary>
   /// <param name="entryPoint">
-  /// The name of the native function to bind to. Pass an empty or whitespace string
+  /// The name of the native function to bind to. Pass null or an empty string
   /// to exclude this method from the generated implementation.
   /// </param>
   public NativeImportMethodAttribute(string? entryPoint)
@@ -391,7 +391,7 @@ public sealed class NativeImportMethodAttribute : Attribute
   /// <see langword="null"/> if an ordinal was used or the parameterless constructor was used.
   /// </value>
   /// <remarks>
-  /// When this property is an empty or whitespace string, the method is excluded
+  /// When this property is null or an empty string, the method is excluded
   /// from the generated implementation.
   /// </remarks>
   public string? EntryPoint { get; }
