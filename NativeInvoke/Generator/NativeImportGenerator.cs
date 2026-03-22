@@ -247,8 +247,9 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     if (methods.Count > 0) // Exit early if we have no methods to process
     {
       var source = GenerateSource(containingType, prop, iface, methods.ToArray(), nativeImportAttr);
+      var formattedSource = FormatSourceCode(source);
       // Generate a file per container type
-      spc.AddSource($"{containingType.Name}.{prop.Name}-{Guid.NewGuid():N}.g.cs", source); // Append Guid to avoid collisions, just in case
+      spc.AddSource($"{containingType.Name}.{prop.Name}-{Guid.NewGuid():N}.g.cs", formattedSource); // Append Guid to avoid collisions, just in case
     }
     else
     {
@@ -266,16 +267,37 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     return $"{symbolPrefix ?? ""}{methodName}{symbolSuffix ?? ""}";
   }
 
+  private static string FormatSourceCode(string sourceCode)
+  {
+    try
+    {
+      // Parse the source code into a syntax tree
+      var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+      var root = syntaxTree.GetCompilationUnitRoot();
+
+      // Apply basic normalization using syntax tree normalization
+      // This provides basic formatting without requiring Workspaces assembly
+      var normalizedRoot = root.NormalizeWhitespace();
+
+      return normalizedRoot.ToFullString();
+    }
+    catch
+    {
+      // If formatting fails, return the original source code
+      return sourceCode;
+    }
+  }
+
   private static string BuildMethodSignatureKey(IMethodSymbol method)
   {
     // Build a unique key for the method signature to detect duplicates from interface hierarchy
-    // Format: ReturnType|MethodName|ParamType1,ParamType2,...
+    // Format: ReturnType|MethodName|ParamType1;ParamType2;...
     var sb = new StringBuilder();
     sb.Append(method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
     sb.Append('|');
     sb.Append(method.Name);
     sb.Append('|');
-    sb.Append(string.Join(",", method.Parameters.Select(static p => p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))));
+    sb.Append(string.Join(";", method.Parameters.Select(static p => p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))));
     return sb.ToString();
   }
 

@@ -148,7 +148,7 @@ All without touching your container type.
 - [x] ~~Implement default symbol name prefix and suffix~~
 - [x] ~~Add `EnforceBlittable` and `ExplicitOnly` flags~~
 - [ ] Switch to `[UnmanagedCallConv]`/`typeof(CallConv*)` for future-proofed calling conventions (MemberFunction, Swift, etc.)
-- [ ] Use `IndentedTextWriter` for source-code generation
+- [x] ~~Format generated code using Roslyn, or use `IndentedTextWriter` for source-code generation~~
 - [x] ~~Append `Guid` to generated fields (to prevent name collisions for overloaded functions)~~
 - [ ] Make unit tests
 - [ ] Auto-generate proper page for docs and examples (maybe use GitHub io page or wiki)
