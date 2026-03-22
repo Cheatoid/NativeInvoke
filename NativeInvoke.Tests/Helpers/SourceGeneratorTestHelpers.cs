@@ -178,6 +178,7 @@ public static class SourceGeneratorTestHelpers
   public static string CreateTestSource(string attributeParams, string interfaceDefinition, string className = "TestClass")
   {
     return $@"
+#define NATIVEINVOKE_SOURCE_GENERATOR
 using System.Runtime.InteropServices;
 using NativeInvoke;
 
