@@ -2,8 +2,9 @@
 
 # 🌟 ᑎᗩTIᐯEIᑎᐯOKE ✨
 
-[![Stars](https://img.shields.io/github/stars/Cheatoid/NativeInvoke?style=flat-square&color=00f0ff&labelColor=001f2b)](https://github.com/Cheatoid/NativeInvoke/stargazers) 
-[![Issues](https://img.shields.io/github/issues/Cheatoid/NativeInvoke?style=flat-square&color=397f14&labelColor=002b00)](https://github.com/Cheatoid/NativeInvoke/issues) 
+[![Stars](https://img.shields.io/github/stars/Cheatoid/NativeInvoke?style=flat-square&color=0088aa&labelColor=001122&logoColor=ffffff)](https://github.com/Cheatoid/NativeInvoke/stargazers) 
+[![Issues](https://img.shields.io/github/issues/Cheatoid/NativeInvoke?style=flat-square&color=cc5500&labelColor=aa4400)](https://github.com/Cheatoid/NativeInvoke/issues) 
+[![Tests](https://img.shields.io/github/actions/workflow/status/Cheatoid/NativeInvoke/build-test.yml?style=flat-square&color=0d591f&labelColor=0d280f&label=tests)](https://github.com/Cheatoid/NativeInvoke/actions/workflows/build-test.yml) 
 [![License](https://img.shields.io/github/license/Cheatoid/NativeInvoke?style=flat-square&color=ff00e6&labelColor=2b001f)](https://github.com/Cheatoid/NativeInvoke/blob/main/LICENSE) 
 [![Discord](https://img.shields.io/badge/Discord-Join-2c2f33?style=flat-square&logo=discord&logoColor=white&labelColor=5865f2)](https://discord.gg/FVCeYxwWtB)
 
