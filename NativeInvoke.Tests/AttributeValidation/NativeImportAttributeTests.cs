@@ -6,13 +6,6 @@ namespace NativeInvoke.Tests.AttributeValidation;
 [TestFixture]
 public class NativeImportAttributeTests
 {
-  private const string BasicInterface = @"
-    [NativeImportMethod]
-    int Add(int a, int b);
-    
-    [NativeImportMethod]
-    void Process();";
-
   [Test]
   public void NativeImportAttribute_Constructor_WithValidLibraryName_SetsLibraryName()
   {
@@ -99,16 +92,16 @@ public class NativeImportAttributeTests
   {
     var testCases = new[]
     {
-            ("", ""),
-            ("_", "_"),
-            ("prefix", "prefix"),
-            ("prefix_", "prefix_"),
-            ("_prefix", "_prefix"),
-            ("lib_", "lib_"),
-            ("_lib", "_lib"),
-            ("mylib_", "mylib_"),
-            ("_mylib", "_mylib")
-        };
+      ("", ""),
+      ("_", "_"),
+      ("prefix", "prefix"),
+      ("prefix_", "prefix_"),
+      ("_prefix", "_prefix"),
+      ("lib_", "lib_"),
+      ("_lib", "_lib"),
+      ("mylib_", "mylib_"),
+      ("_mylib", "_mylib")
+    };
 
     foreach (var (prefix, suffix) in testCases)
     {

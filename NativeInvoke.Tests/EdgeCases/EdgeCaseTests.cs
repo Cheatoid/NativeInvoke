@@ -32,12 +32,12 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     // Generic methods with unmanaged constraint should be handled without errors
     Assert.That(diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), Is.False,
-        "Should not crash on generic methods with unmanaged constraint");
+      "Should not crash on generic methods with unmanaged constraint");
   }
 
   [Test]
@@ -277,7 +277,7 @@ public static partial class TestClass
 
     // Should have unique methods (CommonMethod should appear only once)
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "CommonMethod", "Base1Method", "Base2Method", "DerivedMethod" });
+      new[] { "CommonMethod", "Base1Method", "Base2Method", "DerivedMethod" });
 
     // Verify no duplicate implementations
     var commonMethodCount = generatedCode!.Split("public void CommonMethod(").Length - 1;
@@ -357,8 +357,11 @@ public static partial class TestClass
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "VeryLongMethodNameThatExceedsNormalLengthAndMightCauseIssues",
-                   "AnotherVeryLongMethodNameWithLotsOfCharacters" });
+      new[]
+      {
+        "VeryLongMethodNameThatExceedsNormalLengthAndMightCauseIssues",
+        "AnotherVeryLongMethodNameWithLotsOfCharacters"
+      });
   }
 
   [Test]

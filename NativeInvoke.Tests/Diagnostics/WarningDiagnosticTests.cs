@@ -31,7 +31,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -62,7 +62,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -93,7 +93,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -123,7 +123,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -153,7 +153,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -182,7 +182,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -215,11 +215,11 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     Assert.That(diagnostics.Where(d => d.Id == "NINVK005"), Is.Empty,
-        "Should not report empty interface warning when there are valid methods");
+      "Should not report empty interface warning when there are valid methods");
   }
 
   [Test]
@@ -244,7 +244,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK005");
@@ -274,7 +274,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK007");
@@ -309,15 +309,15 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     var warningDiagnostics = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning).ToArray();
     var warningIds = warningDiagnostics.Select(d => d.Id).ToArray();
 
     Assert.That(warningIds.Count(id => id == "NINVK005"), Is.EqualTo(2),
-        "Should have 2 empty interface warnings");
+      "Should have 2 empty interface warnings");
     Assert.That(warningIds.Count(id => id == "NINVK007"), Is.EqualTo(2),
-        "Should have 2 invalid attribute argument warnings");
+      "Should have 2 invalid attribute argument warnings");
   }
 }

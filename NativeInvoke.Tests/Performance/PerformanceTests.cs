@@ -51,12 +51,12 @@ public static partial class TestClass
     for (int i = 0; i < 100; i++)
     {
       Assert.That(generatedCode!, Does.Contain($"Method{i}("),
-          $"Should contain Method{i}");
+        $"Should contain Method{i}");
     }
 
     // Performance assertion (should complete in reasonable time)
     Assert.That(generationTime.TotalSeconds, Is.LessThan(5.0),
-        "Generation should complete within 5 seconds");
+      "Generation should complete within 5 seconds");
   }
 
   [Test]
@@ -101,7 +101,7 @@ public static partial class TestClass
 
     // Performance assertion
     Assert.That(generationTime.TotalSeconds, Is.LessThan(10.0),
-        "Generation should complete within 10 seconds");
+      "Generation should complete within 10 seconds");
 
     // Verify each generated file is correct
     for (int i = 0; i < 50; i++)
@@ -158,12 +158,12 @@ public static partial class TestClass
     for (int i = 0; i < 20; i++)
     {
       Assert.That(generatedCode!, Does.Contain($"Method{i}("),
-          $"Should contain inherited Method{i}");
+        $"Should contain inherited Method{i}");
     }
 
     // Performance assertion
     Assert.That(generationTime.TotalSeconds, Is.LessThan(5.0),
-        "Generation should complete within 5 seconds");
+      "Generation should complete within 5 seconds");
   }
 
   [Test]
@@ -232,11 +232,11 @@ public static partial class TestClass
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "Method1", "Method2", "Method3", "Method4", "Method5", "Method6", "Method7", "Method8" });
+      new[] { "Method1", "Method2", "Method3", "Method4", "Method5", "Method6", "Method7", "Method8" });
 
     // Performance assertion
     Assert.That(generationTime.TotalSeconds, Is.LessThan(3.0),
-        "Complex signature generation should complete within 3 seconds");
+      "Complex signature generation should complete within 3 seconds");
   }
 
   [Test]
@@ -322,7 +322,7 @@ public static partial class TestClass
 
     // Performance assertion
     Assert.That(generationTime.TotalSeconds, Is.LessThan(5.0),
-        "Mixed configuration generation should complete within 5 seconds");
+      "Mixed configuration generation should complete within 5 seconds");
   }
 
   [Test]
@@ -359,8 +359,8 @@ public static partial class TestClass
 
       // Normalize GUIDs to make comparison deterministic
       var normalizedCode = System.Text.RegularExpressions.Regex.Replace(generatedCode!,
-          @"[a-f0-9]{32}",
-          "NORMALIZED_GUID");
+        @"[a-f0-9]{32}",
+        "NORMALIZED_GUID");
 
       generatedCodes.Add(normalizedCode);
     }
@@ -369,7 +369,7 @@ public static partial class TestClass
     for (int i = 1; i < generatedCodes.Count; i++)
     {
       Assert.That(generatedCodes[i], Is.EqualTo(generatedCodes[0]),
-          $"Generation {i} should match first generation");
+        $"Generation {i} should match first generation");
     }
   }
 }

@@ -1,7 +1,9 @@
 // This file is part of NativeInvoke NuGet package; https://github.com/Cheatoid/NativeInvoke
 // Licensed under MIT. Copyright © Cheatoid.
 
+//#if NATIVEINVOKE_SOURCE_GENERATOR
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace NativeInvoke;
@@ -48,6 +50,7 @@ namespace NativeInvoke;
 /// </example>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+[Conditional("NATIVEINVOKE_SOURCE_GENERATOR")]
 public sealed class NativeImportAttribute : Attribute
 {
   /// <summary>
@@ -338,6 +341,7 @@ public sealed class NativeImportAttribute : Attribute
 /// </example>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+[Conditional("NATIVEINVOKE_SOURCE_GENERATOR")]
 public sealed class NativeImportMethodAttribute : Attribute
 {
   /// <summary>
@@ -468,3 +472,6 @@ public sealed class NativeImportMethodAttribute : Attribute
   /// </remarks>
   public bool EnforceBlittable { get; set; }
 }
+//#else
+// Strip the namespace and attributes from compilation - they're only needed during source generation
+//#endif

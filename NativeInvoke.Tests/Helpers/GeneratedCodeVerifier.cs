@@ -17,7 +17,7 @@ public static class GeneratedCodeVerifier
     foreach (var pattern in expectedPatterns)
     {
       Assert.That(generatedCode, Does.Contain(pattern),
-          $"Generated code should contain pattern: {pattern}");
+        $"Generated code should contain pattern: {pattern}");
     }
   }
 
@@ -29,7 +29,7 @@ public static class GeneratedCodeVerifier
     foreach (var pattern in prohibitedPatterns)
     {
       Assert.That(generatedCode, Does.Not.Contain(pattern),
-          $"Generated code should not contain pattern: {pattern}");
+        $"Generated code should not contain pattern: {pattern}");
     }
   }
 
@@ -40,11 +40,11 @@ public static class GeneratedCodeVerifier
   {
     var expectedPatterns = new[]
     {
-            $"private sealed unsafe class __Impl_{propertyName}_",
-            "private static readonly nint __lib;",
-            "static __Impl_",
-            "NativeLibrary.TryLoad"
-        };
+      $"private sealed unsafe class __Impl_{propertyName}_",
+      "private static readonly nint __lib;",
+      "static __Impl_",
+      "NativeLibrary.TryLoad"
+    };
 
     VerifyGeneratedCode(generatedCode, expectedPatterns);
 
@@ -54,7 +54,7 @@ public static class GeneratedCodeVerifier
 
     var hasInterfacePattern = generatedCode.Contains(interfacePattern1) || generatedCode.Contains(interfacePattern2);
     Assert.That(hasInterfacePattern, Is.True,
-        $"Generated code should contain interface implementation pattern: {interfacePattern1} or {interfacePattern2}");
+      $"Generated code should contain interface implementation pattern: {interfacePattern1} or {interfacePattern2}");
   }
 
   /// <summary>
@@ -66,7 +66,7 @@ public static class GeneratedCodeVerifier
     {
       var expectedPattern = $"private static readonly delegate* unmanaged";
       Assert.That(generatedCode, Does.Contain(expectedPattern),
-          $"Should contain function pointer for method: {methodName}");
+        $"Should contain function pointer for method: {methodName}");
     }
   }
 
@@ -84,7 +84,7 @@ public static class GeneratedCodeVerifier
 
       var found = regex.IsMatch(generatedCode);
       Assert.That(found, Is.True,
-          $"Should contain implementation for method: {methodName}");
+        $"Should contain implementation for method: {methodName}");
     }
   }
 
@@ -95,19 +95,19 @@ public static class GeneratedCodeVerifier
   {
     var lazyPatterns = new[]
     {
-            "private static readonly global::System.Threading.Lock __lock_",
-            "private static nint __addr_",
-            "private static bool __resolved_",
-            "private static void __Ensure_",
-            "NativeLibrary.TryGetExport"
-        };
+      "private static readonly global::System.Threading.Lock __lock_",
+      "private static nint __addr_",
+      "private static bool __resolved_",
+      "private static void __Ensure_",
+      "NativeLibrary.TryGetExport"
+    };
 
     VerifyGeneratedCode(generatedCode, lazyPatterns);
 
     foreach (var methodName in methodNames)
     {
       Assert.That(generatedCode, Does.Contain($"__Ensure_{methodName}_"),
-          $"Should contain lazy ensure method for: {methodName}");
+        $"Should contain lazy ensure method for: {methodName}");
     }
   }
 
@@ -118,10 +118,10 @@ public static class GeneratedCodeVerifier
   {
     var eagerPatterns = new[]
     {
-            "static __Impl_",
-            "NativeLibrary.TryLoad",
-            "NativeLibrary.TryGetExport"
-        };
+      "static __Impl_",
+      "NativeLibrary.TryLoad",
+      "NativeLibrary.TryGetExport"
+    };
 
     VerifyGeneratedCode(generatedCode, eagerPatterns);
 
@@ -129,7 +129,7 @@ public static class GeneratedCodeVerifier
     foreach (var methodName in methodNames)
     {
       Assert.That(generatedCode, Does.Contain($"__fp_{methodName}"),
-          $"Should contain function pointer field for: {methodName}");
+        $"Should contain function pointer field for: {methodName}");
     }
   }
 
@@ -151,7 +151,7 @@ public static class GeneratedCodeVerifier
     if (!string.IsNullOrEmpty(expectedConventionString))
     {
       Assert.That(generatedCode, Does.Contain(expectedConventionString),
-          $"Should contain calling convention: {expectedConventionString}");
+        $"Should contain calling convention: {expectedConventionString}");
     }
   }
 
@@ -163,12 +163,12 @@ public static class GeneratedCodeVerifier
     if (expectedSuppression)
     {
       Assert.That(generatedCode, Does.Contain("[SuppressGCTransition]"),
-          "Should contain GC transition suppression");
+        "Should contain GC transition suppression");
     }
     else
     {
       Assert.That(generatedCode, Does.Not.Contain("[SuppressGCTransition]"),
-          "Should not contain GC transition suppression");
+        "Should not contain GC transition suppression");
     }
   }
 
@@ -181,7 +181,7 @@ public static class GeneratedCodeVerifier
     var expectedPattern = $"NativeLibrary.TryGetExport(__lib, \"{expectedEntryPoint}\"";
 
     Assert.That(generatedCode, Does.Contain(expectedPattern),
-        $"Should contain entry point resolution for: {expectedEntryPoint}");
+      $"Should contain entry point resolution for: {expectedEntryPoint}");
   }
 
   /// <summary>
@@ -197,6 +197,6 @@ public static class GeneratedCodeVerifier
     var found = regex.IsMatch(generatedCode) && generatedCode.Contains(throwPattern);
 
     Assert.That(found, Is.True,
-        $"Should contain excluded method stub for: {methodName}");
+      $"Should contain excluded method stub for: {methodName}");
   }
 }

@@ -15,14 +15,14 @@ public class AdvancedGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\", Lazy = true",
-        @"
+      "\"testlib\", Lazy = true",
+      @"
     [NativeImportMethod]
     int Add(int a, int b);
 
     [NativeImportMethod]
     void Process();",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -40,11 +40,11 @@ public class AdvancedGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\", CallingConvention = CallingConvention.Cdecl",
-        @"
+      "\"testlib\", CallingConvention = CallingConvention.Cdecl",
+      @"
     [NativeImportMethod]
     int Add(int a, int b);",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -62,11 +62,11 @@ public class AdvancedGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\", SuppressGCTransition = true",
-        @"
+      "\"testlib\", SuppressGCTransition = true",
+      @"
     [NativeImportMethod]
     int Add(int a, int b);",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -84,14 +84,14 @@ public class AdvancedGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\", SymbolPrefix = \"lib_\", SymbolSuffix = \"_impl\"",
-        @"
+      "\"testlib\", SymbolPrefix = \"lib_\", SymbolSuffix = \"_impl\"",
+      @"
     [NativeImportMethod]
     int Add(int a, int b);
 
     [NativeImportMethod]
     void Process();",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -110,13 +110,13 @@ public class AdvancedGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\", ExplicitOnly = true",
-        @"
+      "\"testlib\", ExplicitOnly = true",
+      @"
     [NativeImportMethod]
     int IncludedMethod(int a, int b);
 
     int ExcludedMethod(int a, int b);",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -341,8 +341,8 @@ public static partial class TestClass
     // Check that exactly one method has suppression by looking at delegate field declarations
     // Count only the field declarations (not assignments) with [SuppressGCTransition]
     var suppressedDelegateCount = System.Text.RegularExpressions.Regex.Matches(
-        generatedCode!,
-        @"readonly\s+delegate\*\s*unmanaged\[SuppressGCTransition\]"
+      generatedCode!,
+      @"readonly\s+delegate\*\s*unmanaged\[SuppressGCTransition\]"
     ).Count;
 
     Assert.That(suppressedDelegateCount, Is.EqualTo(1), "Exactly one method should have GC transition suppression");

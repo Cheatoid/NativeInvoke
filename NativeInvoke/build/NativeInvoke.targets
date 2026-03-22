@@ -1,0 +1,15 @@
+<Project>
+    <!--
+        NativeInvoke build targets
+        This file ensures that NativeImportAttribute.cs is available for source generation
+        but not compiled into the final assembly
+    -->
+
+    <!-- Include the attribute source file in compilation with conditional compilation -->
+    <ItemGroup>
+        <Compile Include="$(MSBuildThisFileDirectory)NativeImportAttribute.cs"
+                 Visible="false"
+                 Condition="Exists('$(MSBuildThisFileDirectory)NativeImportAttribute.cs')"/>
+    </ItemGroup>
+
+</Project>

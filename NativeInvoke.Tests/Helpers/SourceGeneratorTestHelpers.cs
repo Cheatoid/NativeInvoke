@@ -9,9 +9,9 @@ public static class SourceGeneratorTestHelpers
   /// Creates a compilation with the specified source code and runs the generator
   /// </summary>
   public static (Compilation Compilation, ImmutableArray<GeneratedSourceResult> GeneratedSources) RunGenerator(
-      string sourceCode,
-      IIncrementalGenerator generator,
-      IEnumerable<string>? additionalReferences = null)
+    string sourceCode,
+    IIncrementalGenerator generator,
+    IEnumerable<string>? additionalReferences = null)
   {
     // Create compilation
     var compilation = CreateCompilation(sourceCode, additionalReferences);
@@ -21,8 +21,8 @@ public static class SourceGeneratorTestHelpers
     var runResult = driver.RunGenerators(compilation).GetRunResult();
 
     var generatedSources = runResult.Results
-        .SelectMany(r => r.GeneratedSources)
-        .ToImmutableArray();
+      .SelectMany(r => r.GeneratedSources)
+      .ToImmutableArray();
 
     return (compilation, generatedSources);
   }
@@ -33,25 +33,25 @@ public static class SourceGeneratorTestHelpers
   public static Compilation CreateCompilation(string sourceCode, IEnumerable<string>? additionalReferences = null)
   {
     var references = new List<string>
-        {
-            typeof(object).Assembly.Location,
-            typeof(Attribute).Assembly.Location,
-            typeof(Enumerable).Assembly.Location,
-            typeof(RuntimeInformation).Assembly.Location,
-            typeof(CSharpCompilation).Assembly.Location,
-            // Add specific references for missing types
-            typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute).Assembly.Location,
-            typeof(System.Runtime.InteropServices.CallingConvention).Assembly.Location,
-            typeof(System.Runtime.InteropServices.NativeLibrary).Assembly.Location,
-            // Try to find System.Runtime and System.Runtime.InteropServices in the runtime directory
-            Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.dll"),
-            Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.InteropServices.dll"),
-            // Try to find netstandard.dll in the runtime directory
-            Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "netstandard.dll"),
-            typeof(NativeImportAttribute).Assembly.Location,
-            // Add NativeInvoke assembly reference - try to locate it
-            GetNativeInvokeAssemblyPath()
-        };
+    {
+      typeof(object).Assembly.Location,
+      typeof(Attribute).Assembly.Location,
+      typeof(Enumerable).Assembly.Location,
+      typeof(RuntimeInformation).Assembly.Location,
+      typeof(CSharpCompilation).Assembly.Location,
+      // Add specific references for missing types
+      typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute).Assembly.Location,
+      typeof(System.Runtime.InteropServices.CallingConvention).Assembly.Location,
+      typeof(System.Runtime.InteropServices.NativeLibrary).Assembly.Location,
+      // Try to find System.Runtime and System.Runtime.InteropServices in the runtime directory
+      Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.dll"),
+      Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.InteropServices.dll"),
+      // Try to find netstandard.dll in the runtime directory
+      Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "netstandard.dll"),
+      typeof(NativeImportAttribute).Assembly.Location,
+      // Add NativeInvoke assembly reference - try to locate it
+      GetNativeInvokeAssemblyPath()
+    };
 
     if (additionalReferences != null)
     {
@@ -59,22 +59,22 @@ public static class SourceGeneratorTestHelpers
     }
 
     var metadataReferences = references
-        .Where(r => !string.IsNullOrEmpty(r))
-        .Distinct()
-        .Select(r => MetadataReference.CreateFromFile(r!))
-        .Cast<MetadataReference>()
-        .ToArray();
+      .Where(r => !string.IsNullOrEmpty(r))
+      .Distinct()
+      .Select(r => MetadataReference.CreateFromFile(r!))
+      .Cast<MetadataReference>()
+      .ToArray();
 
     var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
 
     return CSharpCompilation.Create(
-        assemblyName: "TestAssembly",
-        syntaxTrees: new[] { syntaxTree },
-        references: metadataReferences,
-        options: new CSharpCompilationOptions(
-            OutputKind.DynamicallyLinkedLibrary,
-            allowUnsafe: true,
-            nullableContextOptions: NullableContextOptions.Enable));
+      assemblyName: "TestAssembly",
+      syntaxTrees: new[] { syntaxTree },
+      references: metadataReferences,
+      options: new CSharpCompilationOptions(
+        OutputKind.DynamicallyLinkedLibrary,
+        allowUnsafe: true,
+        nullableContextOptions: NullableContextOptions.Enable));
   }
 
   /// <summary>
@@ -85,19 +85,19 @@ public static class SourceGeneratorTestHelpers
     // Try multiple possible relative paths
     var possiblePaths = new[]
     {
-            // Relative to test project directory
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "bin", "NativeInvoke.dll"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "NativeInvoke", "bin", "NativeInvoke.dll"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "bin", "NativeInvoke.dll"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NativeInvoke.dll"),
+      // Relative to test project directory
+      Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "bin", "NativeInvoke.dll"),
+      Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "NativeInvoke", "bin", "NativeInvoke.dll"),
+      Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "bin", "NativeInvoke.dll"),
+      Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NativeInvoke.dll"),
 
-            // Try current directory and subdirectories
-            "NativeInvoke.dll",
+      // Try current directory and subdirectories
+      "NativeInvoke.dll",
 
-            // Fallback to common output directories
-            Path.Combine("..", "bin", "NativeInvoke.dll"),
-            Path.Combine("..", "..", "bin", "NativeInvoke.dll")
-        };
+      // Fallback to common output directories
+      Path.Combine("..", "bin", "NativeInvoke.dll"),
+      Path.Combine("..", "..", "bin", "NativeInvoke.dll")
+    };
 
     foreach (var path in possiblePaths)
     {
@@ -123,42 +123,42 @@ public static class SourceGeneratorTestHelpers
   /// Gets all diagnostics from the generator run
   /// </summary>
   public static ImmutableArray<Diagnostic> GetGeneratorDiagnostics(
-      Compilation compilation,
-      IIncrementalGenerator generator)
+    Compilation compilation,
+    IIncrementalGenerator generator)
   {
     var driver = CSharpGeneratorDriver.Create(generator);
     var runResult = driver.RunGenerators(compilation).GetRunResult();
 
     return runResult.Results
-        .SelectMany(r => r.Diagnostics)
-        .ToImmutableArray();
+      .SelectMany(r => r.Diagnostics)
+      .ToImmutableArray();
   }
 
   /// <summary>
   /// Verifies that specific diagnostics are present
   /// </summary>
   public static void AssertDiagnostics(
-      ImmutableArray<Diagnostic> diagnostics,
-      params string[] expectedIds)
+    ImmutableArray<Diagnostic> diagnostics,
+    params string[] expectedIds)
   {
     var actualIds = diagnostics.Select(d => d.Id).ToArray();
 
     foreach (var expectedId in expectedIds)
     {
       Assert.That(actualIds, Contains.Item(expectedId),
-          $"Expected diagnostic '{expectedId}' was not found. Actual diagnostics: {string.Join(", ", actualIds)}");
+        $"Expected diagnostic '{expectedId}' was not found. Actual diagnostics: {string.Join(", ", actualIds)}");
     }
 
     Assert.That(actualIds.Length, Is.EqualTo(expectedIds.Length),
-        $"Number of diagnostics mismatch. Expected {expectedIds.Length}, got {actualIds.Length}");
+      $"Number of diagnostics mismatch. Expected {expectedIds.Length}, got {actualIds.Length}");
   }
 
   /// <summary>
   /// Gets the generated source code for a specific hint name
   /// </summary>
   public static string? GetGeneratedSource(
-      ImmutableArray<GeneratedSourceResult> generatedSources,
-      string hintName)
+    ImmutableArray<GeneratedSourceResult> generatedSources,
+    string hintName)
   {
     var source = generatedSources.FirstOrDefault(s => s.HintName.Contains(hintName));
     return generatedSources.Any(s => s.HintName.Contains(hintName)) ? source.SourceText?.ToString() : null;

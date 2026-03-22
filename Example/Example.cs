@@ -62,7 +62,9 @@ public unsafe interface IUser32<TAnsiChar, TWideChar>
       return MessageBoxA(hWnd, (TAnsiChar*)textPtr, (TAnsiChar*)captionPtr, uType);
     }
   }
+
   int MessageBoxA(HWND hWnd, TAnsiChar* lpText, TAnsiChar* lpCaption, UINT uType);
+
   //[NIMA(EnforceBlittable = false)] // TODO/FIXME: ReadOnlySpan (ref struct) is treated as non-blittable
   int MessageBoxW(HWND hWnd, ReadOnlySpan<TWideChar> lpText, ReadOnlySpan<TWideChar> lpCaption, UINT uType)
   {
@@ -73,6 +75,7 @@ public unsafe interface IUser32<TAnsiChar, TWideChar>
       return MessageBox(hWnd, (TWideChar*)textPtr, (TWideChar*)captionPtr, uType);
     }
   }
+
   [NIMA("MessageBoxW")]
   int MessageBox(HWND hWnd, TWideChar* lpText, TWideChar* lpCaption, UINT uType);
 }

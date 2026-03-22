@@ -15,14 +15,14 @@ public class BasicGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\"",
-        @"
+      "\"testlib\"",
+      @"
     [NativeImportMethod]
     int Add(int a, int b);
 
     [NativeImportMethod]
     void Process();",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -43,8 +43,8 @@ public class BasicGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\"",
-        @"
+      "\"testlib\"",
+      @"
     [NativeImportMethod]
     int AddInt(int a, int b);
 
@@ -56,7 +56,7 @@ public class BasicGenerationTests
 
     [NativeImportMethod]
     long ProcessLong(long value);",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -66,7 +66,7 @@ public class BasicGenerationTests
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "AddInt", "AddDouble", "ProcessFloat", "ProcessLong" });
+      new[] { "AddInt", "AddDouble", "ProcessFloat", "ProcessLong" });
   }
 
   [Test]
@@ -74,14 +74,14 @@ public class BasicGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\"",
-        @"
+      "\"testlib\"",
+      @"
     [NativeImportMethod]
     void Method1();
 
     [NativeImportMethod]
     void Method2(int param);",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);
@@ -98,12 +98,12 @@ public class BasicGenerationTests
   {
     // Arrange
     var sourceCode = SourceGeneratorTestHelpers.CreateTestSource(
-        "\"testlib\"",
-        @"
+      "\"testlib\"",
+      @"
     int Add(int a, int b);
 
     void Process();",
-        "TestClass");
+      "TestClass");
 
     // Act
     var (compilation, generatedSources) = SourceGeneratorTestHelpers.RunGenerator(sourceCode, Generator);

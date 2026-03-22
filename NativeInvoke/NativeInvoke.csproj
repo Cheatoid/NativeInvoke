@@ -14,7 +14,7 @@
         <Deterministic>true</Deterministic>
         <Nullable>enable</Nullable>
         <ImplicitUsings>disable</ImplicitUsings>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
         <GenerateSatelliteAssemblies>false</GenerateSatelliteAssemblies>
@@ -33,6 +33,8 @@
         <IsRoslynComponent>true</IsRoslynComponent>
         <DevelopmentDependency>true</DevelopmentDependency> <!-- Prevent transitive dependencies -->
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <!-- Define compilation constants for source generator to include attributes -->
+        <DefineConstants>$(DefineConstants);NATIVEINVOKE_SOURCE_GENERATOR</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -84,6 +86,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.201">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.CodeAnalysis" Version="5.0.0" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25218.8">
@@ -92,6 +102,26 @@
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all"/>
+        <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.CodeFixes" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.Refactorings" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.21.0.135717">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -120,13 +150,14 @@
         <None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs"/>
     </ItemGroup>
 
-    <!-- Include attribute source file as content to be compiled by consumer (zero runtime dependency) -->
+    <!-- Include attribute source file directly in build folder (not as content) -->
     <ItemGroup>
-        <Content Include="NativeImportAttribute.cs" Pack="true" PackagePath="contentFiles/cs/any/NativeInvoke/">
-            <BuildAction>Compile</BuildAction>
-            <CopyToOutput>false</CopyToOutput>
-            <Flatten>false</Flatten>
-        </Content>
+        <None Include="NativeImportAttribute.cs" Pack="true" PackagePath="build/"/>
+    </ItemGroup>
+
+    <!-- Add build targets to inject the attribute file with conditional compilation -->
+    <ItemGroup>
+        <None Include="build\NativeInvoke.targets" Pack="true" PackagePath="build\"/>
     </ItemGroup>
 
     <!-- Fallback: Inject the attribute source file into the consumer project (zero runtime dependency) -->

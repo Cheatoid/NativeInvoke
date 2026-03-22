@@ -68,7 +68,7 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     var containingType = prop.ContainingType;
 
     // Containing type must be partial
-    if (/*!containingType.IsStatic ||*/ !IsPartial(containingType))
+    if (!IsPartial(containingType))
     {
       spc.ReportDiagnostic(Diagnostic.Create(
         Diagnostics.TypeMustBePartial,
@@ -160,10 +160,10 @@ public sealed class NativeImportGenerator : IIncrementalGenerator
     foreach (var member in interfacesToProcess.SelectMany(static currentIface => currentIface.GetMembers()))
     {
       if (member is not IMethodSymbol
-        {
-          MethodKind: MethodKind.Ordinary,
-          IsAbstract: true // Skip C# 8 default interface implementations (methods with body)
-        } method)
+          {
+            MethodKind: MethodKind.Ordinary,
+            IsAbstract: true // Skip C# 8 default interface implementations (methods with body)
+          } method)
       {
         continue;
       }

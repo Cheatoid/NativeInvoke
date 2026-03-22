@@ -1,53 +1,86 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <OutputType>Library</OutputType>
-    <OutDir>..\bin\</OutDir>
-    <AssemblyName>NativeInvoke.Tests</AssemblyName>
-    <RootNamespace>NativeInvoke.Tests</RootNamespace>
-    <LangVersion>latest</LangVersion>
-    <WarningLevel>4</WarningLevel>
-    <ErrorReport>none</ErrorReport>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Deterministic>true</Deterministic>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
-    <CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <OutputType>Library</OutputType>
+        <OutDir>..\bin\</OutDir>
+        <AssemblyName>NativeInvoke.Tests</AssemblyName>
+        <RootNamespace>NativeInvoke.Tests</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <WarningLevel>4</WarningLevel>
+        <ErrorReport>none</ErrorReport>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Deterministic>true</Deterministic>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+        <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+        <CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+        <DebugType>portable</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <Optimize>false</Optimize>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+        <DebugType>none</DebugType>
+        <DebugSymbols>false</DebugSymbols>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
-    <PackageReference Include="NUnit" Version="4.5.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25218.8" PrivateAssets="all" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.201">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0"/>
+        <PackageReference Include="NUnit" Version="4.5.1"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="6.2.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25218.8" PrivateAssets="all"/>
+        <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.CodeFixes" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.Refactorings" Version="4.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.21.0.135717">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\NativeInvoke\NativeInvoke.csproj"/>
+    </ItemGroup>
+
+    <!-- Define compilation constant for source generator to work in tests -->
+    <PropertyGroup>
+        <DefineConstants>$(DefineConstants);NATIVEINVOKE_SOURCE_GENERATOR</DefineConstants>
+    </PropertyGroup>
 
 </Project>

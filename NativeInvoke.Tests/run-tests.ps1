@@ -12,10 +12,11 @@ $TestProjectPath = Join-Path $ScriptDir "NativeInvoke.Tests.csproj"
 Write-Host "Building solution..." -ForegroundColor Yellow
 dotnet build $SolutionPath --configuration Debug
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Build failed!" -ForegroundColor Red
-    Read-Host "Press Enter to exit"
-    exit 1
+if ($LASTEXITCODE -ne 0)
+{
+  Write-Host "Build failed!" -ForegroundColor Red
+  Read-Host "Press Enter to exit"
+  exit 1
 }
 
 Write-Host ""
@@ -25,10 +26,11 @@ Write-Host ""
 # Run all tests
 dotnet test $TestProjectPath --configuration Debug --verbosity normal
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Some tests failed!" -ForegroundColor Red
-    Read-Host "Press Enter to exit"
-    exit 1
+if ($LASTEXITCODE -ne 0)
+{
+  Write-Host "Some tests failed!" -ForegroundColor Red
+  Read-Host "Press Enter to exit"
+  exit 1
 }
 
 Write-Host ""

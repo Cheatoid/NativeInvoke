@@ -32,7 +32,7 @@ public static class TestClass  // Not partial
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK001");
@@ -60,7 +60,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK002");
@@ -88,7 +88,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK002");
@@ -115,7 +115,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK003");
@@ -143,7 +143,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK006");
@@ -171,7 +171,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK006");
@@ -199,7 +199,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
@@ -227,7 +227,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
@@ -260,7 +260,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
@@ -288,7 +288,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK007");
@@ -316,7 +316,7 @@ public static class TestClass  // Not partial
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     // Due to early returns in the generator, only the first error (class not partial) is reported
@@ -346,7 +346,7 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     SourceGeneratorTestHelpers.AssertDiagnostics(diagnostics, "NINVK004");
@@ -374,10 +374,10 @@ public static partial class TestClass
 
     // Act
     var diagnostics = SourceGeneratorTestHelpers.GetGeneratorDiagnostics(
-        SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
+      SourceGeneratorTestHelpers.CreateCompilation(sourceCode), Generator);
 
     // Assert
     Assert.That(diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error), Is.Empty,
-        "Should not have any error diagnostics when blittable validation is disabled");
+      "Should not have any error diagnostics when blittable validation is disabled");
   }
 }

@@ -56,7 +56,7 @@ public static partial class NativeMethods
 
     GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!, "IKernel32", "Kernel32");
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
+      new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
 
     // Verify custom entry points
     Assert.That(generatedCode!, Does.Contain("\"GetTickCount\""));
@@ -69,7 +69,7 @@ public static partial class NativeMethods
 
     // Verify eager loading
     GeneratedCodeVerifier.VerifyEagerLoading(generatedCode!,
-        new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
+      new[] { "GetTickCount", "GetCurrentProcessId", "Sleep", "GetTickCount64", "Beep" });
   }
 
   [Test]
@@ -185,7 +185,7 @@ public static partial class NativeMethods
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "BaseMethod1", "BaseMethod2", "IntermediateMethod", "IntermediateMethodCustom", "FinalMethod" });
+      new[] { "BaseMethod1", "BaseMethod2", "IntermediateMethod", "IntermediateMethodCustom", "FinalMethod" });
 
     // Verify custom entry points
     Assert.That(generatedCode!, Does.Contain("\"base_custom\""));
@@ -235,7 +235,7 @@ public static partial class NativeMethods
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "ExplicitMethod1", "ExplicitMethod2", "ImplicitMethod1", "ImplicitMethod2" });
+      new[] { "ExplicitMethod1", "ExplicitMethod2", "ImplicitMethod1", "ImplicitMethod2" });
     GeneratedCodeVerifier.VerifyExcludedMethodStub(generatedCode!, "ExcludedMethod");
 
     // Verify custom entry point
@@ -282,7 +282,7 @@ public static partial class NativeMethods
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!,
-        new[] { "WinApiMethod", "CdeclMethod", "StdCallMethod", "ThisCallMethod", "FastCallMethod" });
+      new[] { "WinApiMethod", "CdeclMethod", "StdCallMethod", "ThisCallMethod", "FastCallMethod" });
 
     // Verify calling conventions
     Assert.That(generatedCode!, Does.Contain("[Cdecl]"));
@@ -332,7 +332,7 @@ namespace OuterNamespace.InnerNamespace
     Assert.That(generatedCode, Is.Not.Null);
 
     GeneratedCodeVerifier.VerifyImplementationStructure(generatedCode!,
-        "OuterNamespace.InnerNamespace.ITestInterface", "TestProperty");
+      "OuterNamespace.InnerNamespace.ITestInterface", "TestProperty");
     GeneratedCodeVerifier.VerifyMethodImplementations(generatedCode!, new[] { "TestMethod" });
 
     // Verify namespace structure
