@@ -14,6 +14,6 @@ nuget update -self
 nuget restore
 dotnet restore --force --no-cache
 dotnet build -c Release --no-restore --no-incremental
-dotnet pack -c Release --no-build  -o nupkg
+dotnet pack -c Release --no-build -o nupkg
 rem pause >NUL
 exit /b 0
